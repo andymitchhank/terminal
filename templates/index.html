@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+	<title>Terminal</title>
+
+	<link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet">
+	<script src="//code.jquery.com/jquery-3.3.1.min.js"
+			integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+			crossorigin="anonymous"></script>
+
+	<style>
+		* {
+			font-family: 'Source Code Pro', monospace;
+			font-size: 1em;
+		}
+		textarea {
+			background-color: transparent;
+			border: none;
+			height: 40px;
+		}
+		.command > div {
+			height: 40px;
+		}
+		*:focus {
+			outline: none;
+		}
+		.command, .command * {
+			width: 100%;
+		}
+		ul {
+			list-style-type: none;
+		}
+	</style>
+
+	<script>
+		var availableCommands = {{ commands|safe }}
+
+		function latestCommand() {
+			return $('.command').last();
+		}
+
+		function latestRequest() {
+			return latestCommand().children('textarea').first()
+		}
+
+		function latestRequestText() {
+			var promptLength = latestRequest().data('prompt').length;
+			var request = latestRequest().val();
+			return request.substring(promptLength);
+		}
+
+		function focusOnLatestCommand() {
+			var l = latestRequest();
+			l.focus();
+			var t = l.val();
+			l.val('');
+			l.val(t);
+		}
+
+		function createNewCommand() {
+			var template = document.getElementById('command-template');
+			document.getElementsByTagName('main')[0].appendChild(template.content.cloneNode(true));
+		}
+
+		function updateCommandResponse(response) {
+			latestCommand().children('div').first().text(response);
+		}
+
+		function runCommand(command, callback) {
+			if (!availableCommands.includes(command)) {
+				callback("Command '" + command + "' not found.");
+				return;
+			}
+
+			switch(command) {
+				case 'clear':
+					$('.command').remove();
+					callback('');
+					break;
+			}
+		}
+
+		$(document)
+			.ready( function() {
+				focusOnLatestCommand();
+			})
+			.on('input', 'textarea', function() {
+				while($(this).outerHeight() < this.scrollHeight + parseFloat($(this).css("borderTopWidth")) + parseFloat($(this).css("borderBottomWidth"))) {
+					$(this).height($(this).height() + 1);
+				}
+			})
+			.on('input', 'textarea', function() {
+				var defaultText = $(this).data('prompt');
+				var defaultTextLength = defaultText.length;
+				if(this.selectionStart === this.selectionEnd && this.selectionStart < defaultTextLength) {
+					$(this).val(defaultText);
+				}
+			})
+			.on('keypress', function(e) {
+				if(e.which == 13) {
+					e.preventDefault();
+					latestRequest().prop('disabled', true);
+					runCommand(latestRequestText(), function(r) {
+						updateCommandResponse(r);
+						createNewCommand();
+						focusOnLatestCommand();
+					});
+				}
+			});
+	</script>
+</head>
+<body>
+	<main>
+		<div class='command'>
+			<textarea class='withPrefix' rows='1' data-prompt='{{ prompt }}'>{{ prompt }}</textarea>
+			<div class='response'></div>
+		</div>
+	</main>
+
+	<template id="command-template">
+		<div class='command'>
+			<textarea class='withPrefix' rows='1' data-prompt='{{ prompt }}'>{{ prompt }}</textarea>
+			<div class='response'></div>
+		</div>
+	</template>
+
+</body>
+</html>
