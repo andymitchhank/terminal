@@ -85,6 +85,7 @@
 
 		$(document)
 			.ready( function() {
+				createNewCommand();
 				focusOnLatestCommand();
 			})
 			.on('input', 'textarea', function() {
@@ -113,12 +114,7 @@
 	</script>
 </head>
 <body>
-	<main>
-		<div class='command'>
-			<textarea class='withPrefix' rows='1' data-prompt='{{ prompt }}'>{{ prompt }}</textarea>
-			<div class='response'></div>
-		</div>
-	</main>
+	<main></main>
 
 	<template id="command-template">
 		<div class='command'>
