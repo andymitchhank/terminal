@@ -1,0 +1,17 @@
+run.config:
+  engine: python
+  engine.config:
+    runtime: python-3.6
+  extra_packages:
+    - nginx
+
+web.main:
+  start:
+    nginx: nginx -c /app/etc/nginx.conf
+    flask: gunicorn -c /app/etc/gunicorn.py app:app --chdir /app/src
+  # writable_dirs:
+  #   - tmp
+
+# worker.main:
+#   start: 'python jobs-worker.py'
+
