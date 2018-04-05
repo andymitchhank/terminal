@@ -70,7 +70,8 @@
 			latestCommand().children('div').first().text(response);
 		}
 
-		function runCommand(command, callback) {
+		function runCommand(commandWithParams, callback) {
+			var command = commandWithParams.split(" ")[0]
 			if (!availableCommands.includes(command)) {
 				callback("Command '" + command + "' not found.");
 				return;
@@ -81,6 +82,16 @@
 					$('.command').remove();
 					callback('');
 					break;
+				default:
+					$.ajax({
+						url: "/run", 
+						type: "POST",
+						contentType: "application/json;",
+						data: JSON.stringify({ command: commandWithParams }), 
+						success: function(r) {
+							callback(r);
+						}
+					});
 			}
 		}
 
