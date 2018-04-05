@@ -18,7 +18,7 @@ def help_option(*param_decls, **attrs):
         attrs.setdefault('help', 'Show this message and exit.')
         attrs.setdefault('is_eager', True)
         attrs['callback'] = print_help
-        return click.decorators.option(*(param_decls or ('--help',)), **attrs)(f)
+        return click.decorators.option(*(param_decls or ('--help','-h')), **attrs)(f)
     return decorator
 
 
