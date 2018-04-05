@@ -37,7 +37,9 @@
 	</style>
 
 	<script>
-		var availableCommands = {{ commands|safe }}
+		var availableCommands = {{ commands|safe }};
+		var commandHistory = [];
+		var commandHistoryPostition = 0;
 
 		function latestCommand() {
 			return $('.command').last();
@@ -66,11 +68,19 @@
 			document.getElementsByTagName('main')[0].appendChild(template.content.cloneNode(true));
 		}
 
+		function updateCommandRequest(request) {
+			request = request || '';
+			var l = latestRequest();
+			l.val(l.data('prompt') + request);
+		}
+
 		function updateCommandResponse(response) {
 			latestCommand().children('div').first().html('<pre>' + response + '</pre>');
 		}
 
 		function runCommand(commandWithParams, callback) {
+			commandHistoryPosition = commandHistory.push(commandWithParams);
+
 			var command = commandWithParams.split(" ")[0]
 			if (!availableCommands.includes(command)) {
 				callback("Command '" + command + "' not found.");
@@ -122,7 +132,26 @@
 						focusOnLatestCommand();
 					});
 				}
+			})
+			.keydown( function(e) {
+				if(e.which == 38) {
+					e.preventDefault();
+					if (commandHistoryPosition !== 0) {
+						commandHistoryPosition -= 1;
+						updateCommandRequest(commandHistory[commandHistoryPosition]);
+					}
+				}
+
+				if(e.which == 40) {
+					e.preventDefault();
+					if (commandHistoryPosition < commandHistory.length) {
+						commandHistoryPosition += 1;
+						updateCommandRequest(commandHistory[commandHistoryPosition]);
+					}
+				}
 			});
+
+
 	</script>
 </head>
 <body>
