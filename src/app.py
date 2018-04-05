@@ -1,6 +1,7 @@
 import shlex
 import json
 
+import click
 from flask import Flask, render_template, jsonify, Blueprint, request
 
 import commands
@@ -8,7 +9,7 @@ import commands
 
 app = Flask(__name__)
 
-commands_list = ['clear', 'test']
+commands_list = ['clear', 'echo']
 
 
 @app.route('/')
@@ -24,8 +25,10 @@ def run_command():
 
 	if command[0] not in commands_list:
 		return f"Command '{command[0]}' not found."
-	
-	return getattr(commands, command[0])(command[1:])
+
+	click_command = getattr(commands, command[0])
+	ctx = click_command.make_context('', command[1:])
+	return click_command.invoke(ctx)
 
 
 if __name__ == '__main__':
