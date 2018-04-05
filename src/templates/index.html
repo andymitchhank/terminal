@@ -19,13 +19,12 @@
 		textarea {
 			background-color: transparent;
 			border: none;
-			height: 40px;
 			resize: none;
 		}
-		.command > div {
+/*		.command > div {
 			height: 40px;
 		}
-		*:focus {
+*/		*:focus {
 			outline: none;
 		}
 		.command, .command * {
@@ -67,7 +66,7 @@
 		}
 
 		function updateCommandResponse(response) {
-			latestCommand().children('div').first().text(response);
+			latestCommand().children('div').first().html('<pre>' + response + '</pre>');
 		}
 
 		function runCommand(commandWithParams, callback) {
@@ -130,7 +129,7 @@
 
 	<template id="command-template">
 		<div class='command'>
-			<textarea class='withPrefix' rows='1' data-prompt='{{ prompt }}'>{{ prompt }}</textarea>
+			<textarea style="height: 1em;" class='withPrefix' rows='1' data-prompt='{{ prompt }}'>{{ prompt }}</textarea>
 			<div class='response'></div>
 		</div>
 	</template>
