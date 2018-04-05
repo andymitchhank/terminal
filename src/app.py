@@ -10,7 +10,7 @@ from click_utils import HelpMessage
 
 app = Flask(__name__)
 
-commands_list = ['clear', 'echo']
+commands_list = ['clear'] + commands.__all__
 
 
 @app.route('/')
