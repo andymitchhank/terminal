@@ -5,7 +5,7 @@ import click
 from flask import Flask, render_template, jsonify, Blueprint, request
 
 import commands
-from click_utils import HelpException
+from click_utils import HelpMessage
 
 
 app = Flask(__name__)
