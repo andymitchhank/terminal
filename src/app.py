@@ -5,6 +5,7 @@ import click
 from flask import Flask, render_template, jsonify, Blueprint, request
 
 import commands
+from click_utils import HelpException
 
 
 app = Flask(__name__)
@@ -27,8 +28,14 @@ def run_command():
 		return f"Command '{command[0]}' not found."
 
 	click_command = getattr(commands, command[0])
-	ctx = click_command.make_context('', command[1:])
-	return click_command.invoke(ctx)
+
+	try: 
+		ctx = click_command.make_context('', command[1:])
+		result = click_command.invoke(ctx)
+	except HelpMessage as m:
+		result = str(m)
+
+	return result
 
 
 if __name__ == '__main__':
