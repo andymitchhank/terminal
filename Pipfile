@@ -10,6 +10,9 @@ name = "pypi"
 flask = "*"
 gunicorn = "*"
 click = "*"
+flask-login = "*"
+peewee = "*"
+"psycopg2" = "*"
 
 
 [dev-packages]
