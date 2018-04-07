@@ -81,7 +81,7 @@
 		function runCommand(commandWithParams, callback) {
 			commandHistoryPosition = commandHistory.push(commandWithParams);
 
-			var command = commandWithParams.split(" ")[0]
+			var command = commandWithParams.split(" ")[0];
 			if (!availableCommands.includes(command)) {
 				callback("Command '" + command + "' not found.");
 				return;
@@ -92,19 +92,33 @@
 					$('.command').remove();
 					callback('');
 					break;
+				case 'login':
+					var password = commandWithParams.split(" ")[1];
+					var fd = new FormData();
+					fd.append('username', 'root');
+					fd.append('password', password);
+
+					fetch("login", {method: "POST", body: fd})
+					.then( r => r.text() )
+					.then( r => callback(r) )
+					.catch( e => callback("Something isn't right. Try using [command] --help for help.") );
+					break;
+				case 'logout':
+					fetch("/logout", {method: "POST"})
+					.then( r => r.text() )
+					.then( r => callback(r) )
+					.catch( e => callback("Something isn't right. Try using [command] --help for help.") );
+					break;
 				default:
-					$.ajax({
-						url: "/run", 
-						type: "POST",
-						contentType: "application/json;",
-						data: JSON.stringify({ command: commandWithParams }), 
-						success: function(r) {
-							callback(r);
-						},
-						error: function(e) {
-							callback("Something isn't right. Try using [command] --help for help.");
-						}
-					});
+					fetch("/run", {
+						method: "POST", 
+						headers: {"content-type": "application/json;"},
+						body: JSON.stringify({ command: commandWithParams })
+					})
+					.then( r => r.text() )
+					.then( r => callback(r) )
+					.catch( e => callback("Something isn't right. Try using [command] --help for help.") );
+					break;
 			}
 		}
 
