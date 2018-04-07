@@ -12,6 +12,9 @@ web.main:
   # writable_dirs:
   #   - tmp
 
+data.db:
+  image: nanobox/postgresql:9.5
+
 # worker.main:
 #   start: 'python jobs-worker.py'
 
