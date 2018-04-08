@@ -49,8 +49,12 @@
 			return latestCommand().children('textarea').first()
 		}
 
+		function getLatestPrompt() {
+			return latestRequest().data('prompt');
+		}
+
 		function latestRequestText() {
-			var promptLength = latestRequest().data('prompt').length;
+			var promptLength = getLatestPrompt().length;
 			var request = latestRequest().val();
 			return request.substring(promptLength);
 		}
@@ -63,9 +67,16 @@
 			l.val(t);
 		}
 
-		function createNewCommand() {
-			var template = document.getElementById('command-template');
-			document.getElementsByTagName('main')[0].appendChild(template.content.cloneNode(true));
+		function setNextPrompt(cloned, nextPrompt) {
+			var textarea = $(cloned).find('textarea')[0];
+			$(textarea).text(nextPrompt);
+			$(textarea).data('prompt', nextPrompt);
+		}
+
+		function createNewCommand(nextPrompt) {
+			var cloned = document.getElementById('command-template').content.cloneNode(true);
+			setNextPrompt(cloned, nextPrompt);
+			document.getElementsByTagName('main')[0].appendChild(cloned);
 		}
 
 		function updateCommandRequest(request) {
@@ -83,14 +94,14 @@
 
 			var command = commandWithParams.split(" ")[0];
 			if (!availableCommands.includes(command)) {
-				callback("Command '" + command + "' not found.");
+				callback({next_prompt: getLatestPrompt(), result: "Command '" + command + "' not found."});
 				return;
 			}
 
 			switch(command) {
 				case 'clear':
 					$('.command').remove();
-					callback('');
+					callback({next_prompt: getLatestPrompt(), result: ''});
 					break;
 				case 'login':
 					var password = commandWithParams.split(" ")[1];
@@ -98,14 +109,14 @@
 					fd.append('username', 'root');
 					fd.append('password', password);
 
-					fetch("login", {method: "POST", body: fd})
-					.then( r => r.text() )
+					fetch("/login", {method: "POST", credentials: 'same-origin', body: fd})
+					.then( r => r.json() )
 					.then( r => callback(r) )
 					.catch( e => callback("Something isn't right. Try using [command] --help for help.") );
 					break;
 				case 'logout':
-					fetch("/logout", {method: "POST"})
-					.then( r => r.text() )
+					fetch("/logout", {method: "POST", credentials: 'same-origin'})
+					.then( r => r.json() )
 					.then( r => callback(r) )
 					.catch( e => callback("Something isn't right. Try using [command] --help for help.") );
 					break;
@@ -113,9 +124,10 @@
 					fetch("/run", {
 						method: "POST", 
 						headers: {"content-type": "application/json;"},
+						credentials: 'same-origin',
 						body: JSON.stringify({ command: commandWithParams })
 					})
-					.then( r => r.text() )
+					.then( r => r.json() )
 					.then( r => callback(r) )
 					.catch( e => callback("Something isn't right. Try using [command] --help for help.") );
 					break;
@@ -124,7 +136,7 @@
 
 		$(document)
 			.ready( function() {
-				createNewCommand();
+				createNewCommand('{{ prompt }}');
 				focusOnLatestCommand();
 			})
 			.on('input', 'textarea', function() {
@@ -143,9 +155,12 @@
 				if(e.which == 13) {
 					e.preventDefault();
 					latestRequest().prop('disabled', true);
-					runCommand(latestRequestText(), function(r) {
+					runCommand(latestRequestText(), function(data) {
+						var r = data.result;
+						var nextPrompt = data.next_prompt;
+
 						updateCommandResponse(r);
-						createNewCommand();
+						createNewCommand(nextPrompt);
 						focusOnLatestCommand();
 					});
 				}
