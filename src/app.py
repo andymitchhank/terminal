@@ -3,7 +3,7 @@ import json
 
 import click
 from flask import Flask, render_template, jsonify, Blueprint, request
-from flask_login import LoginManager, login_user, logout_user
+from flask_login import LoginManager, login_user, logout_user, current_user, login_required
 from werkzeug.security import check_password_hash, generate_password_hash
 
 import commands
@@ -18,40 +18,54 @@ app.secret_key = env.secret_key
 commands_list = ['clear', 'login', 'logout'] + commands.__all__
 
 
+def get_prompt():
+	""" Build a prompt based on the current logged in user or guest """
+	username = 'guest'
+	if current_user.is_authenticated:
+		username = current_user.username
+	return f'{username}@{request.host} $ '
+
+
+def build_response(result):
+	""" Build a response that includes the given result and next prompt """
+	return jsonify({
+			'result': result,
+			'next_prompt': get_prompt()
+		})
+
+
 @login_manager.user_loader
-def load_user(username):
-	if not models.User.select().where(models.User.username == username).exists():
+def load_user(id):
+	if not models.User.select().where(models.User.id == id).exists():
 		return
 
-	return models.User.get(models.User.username == username)
+	return models.User.get(models.User.id == id)	
 
 
 @app.route('/login', methods=['POST'])
 def login():
 	username = request.form.get('username')
 	if not models.User.select().where(models.User.username == username).exists():
-		return 'No such user'
+		return build_response('Bad login')
 
 	user = models.User.get(models.User.username == username)
 
 	if check_password_hash(user.password_hash, request.form.get('password')):
 		login_user(user)
-		return 'Logged in'
-
-	return 'Bad login'
+		return build_response('Logged in')
+	
+	return build_response('Bad login')
 
 
 @app.route('/logout', methods=['POST'])
 def logout():
 	logout_user()
-	return 'Logged out'
+	return build_response('Logged out')
 
 
 @app.route('/')
 def index():
-	username = 'guest'
-	prompt = f'{username}@{request.host} $ '
-	return render_template('index.html', commands=json.dumps(commands_list), prompt=prompt)
+	return render_template('index.html', commands=json.dumps(commands_list), prompt=get_prompt())
 
 
 @app.route('/run', methods=['POST'])
@@ -69,7 +83,7 @@ def run_command():
 	except HelpMessage as m:
 		result = str(m)
 
-	return result
+	return build_response(result)
 
 
 if __name__ == '__main__':
