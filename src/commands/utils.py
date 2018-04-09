@@ -25,10 +25,10 @@ def help(ctx):
 
 @click.command()
 @click_utils.help_option()
-@click.argument('text')
+@click.argument('text', nargs=-1)
 def echo(text):
-	""" Echo back whatever was passed in. """
-	return text
+	""" Echo back arguments passed in. Strips extra whitespace. """
+	return ' '.join(text)
 
 
 @click.command()
