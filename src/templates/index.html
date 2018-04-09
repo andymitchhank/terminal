@@ -104,23 +104,6 @@
 					$('.command').remove();
 					callback({next_prompt: nextPrompt, result: ''});
 					break;
-				case 'login':
-					var password = commandWithParams.split(" ")[1];
-					var fd = new FormData();
-					fd.append('username', 'root');
-					fd.append('password', password);
-
-					fetch("/login", {method: "POST", credentials: 'same-origin', body: fd})
-					.then( r => r.json() )
-					.then( r => callback(r) )
-					.catch( e => callback("Something isn't right. Try using [command] --help for help.") );
-					break;
-				case 'logout':
-					fetch("/logout", {method: "POST", credentials: 'same-origin'})
-					.then( r => r.json() )
-					.then( r => callback(r) )
-					.catch( e => callback("Something isn't right. Try using [command] --help for help.") );
-					break;
 				default:
 					fetch("/run", {
 						method: "POST", 

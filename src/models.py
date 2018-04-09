@@ -17,6 +17,16 @@ class User(BaseModel, UserMixin):
 	username = CharField(unique=True)
 	password_hash = CharField()
 
+	def exists(username=None, id=None):
+		if username is None and id is None:
+			return False
+
+		if id is not None:
+			return User.select().where(User.id == id).exists()
+
+		if username is not None:
+			return User.select().where(User.username == username).exists()
+
 
 models = [User]
 for model in models: 
