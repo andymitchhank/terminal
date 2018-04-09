@@ -152,6 +152,11 @@
 				focusOnLatestCommand();
 			})
 			.on('input', 'textarea', function() {
+				while($(this).outerHeight() < this.scrollHeight + parseFloat($(this).css("borderTopWidth")) + parseFloat($(this).css("borderBottomWidth"))) {
+					$(this).height($(this).height() + 1);
+				}
+			})
+			.on('input', 'textarea', function() {
 				var defaultText = $(this).data('prompt');
 				var defaultTextLength = defaultText.length;
 				if(this.selectionStart === this.selectionEnd && this.selectionStart < defaultTextLength) {
