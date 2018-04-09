@@ -3,8 +3,7 @@ import json
 
 import click
 from flask import Flask, render_template, jsonify, Blueprint, request
-from flask_login import LoginManager, login_user, logout_user, current_user, login_required
-from werkzeug.security import check_password_hash, generate_password_hash
+from flask_login import LoginManager, current_user
 
 import commands
 from click_utils import HelpMessage
@@ -15,7 +14,7 @@ app = Flask(__name__)
 login_manager = LoginManager(app)
 app.secret_key = env.secret_key
 
-commands_list = ['clear', 'login', 'logout', 'passwd'] + commands.__all__
+commands_list = ['clear'] + commands.__all__
 
 
 def get_prompt():
@@ -40,29 +39,8 @@ def load_user(id):
 		return
 
 	return models.User.get(models.User.id == id)	
-
-
-@app.route('/login', methods=['POST'])
-def login():
-	username = request.form.get('username')
-	if not models.User.select().where(models.User.username == username).exists():
-		return build_response('Bad login')
-
-	user = models.User.get(models.User.username == username)
-
-	if check_password_hash(user.password_hash, request.form.get('password')):
-		login_user(user)
-		return build_response('Logged in')
 	
-	return build_response('Bad login')
 
-
-@app.route('/logout', methods=['POST'])
-def logout():
-	logout_user()
-	return build_response('Logged out')
-	
-	
 @app.route('/')
 def index():
 	return render_template('index.html', commands=json.dumps(commands_list), prompt=get_prompt())

@@ -1,12 +1,12 @@
 import click
-from flask_login import current_user
-from werkzeug.security import generate_password_hash
+from flask_login import current_user, login_user, logout_user
+from werkzeug.security import check_password_hash, generate_password_hash
 
 import click_utils
 from models import User
 
 
-__all__ = ['echo', 'help', 'passwd']
+__all__ = ['echo', 'help', 'login', 'logout', 'passwd']
 
 
 @click.command()
@@ -29,6 +29,31 @@ def help(ctx):
 def echo(text):
 	""" Echo back whatever was passed in. """
 	return text
+
+
+@click.command()
+@click_utils.help_option()
+@click.argument('username')
+@click.argument('password')
+def login(username, password):
+	""" Login a user given username and password. """
+	if not User.exists(username=username):
+		return "Bad login."
+
+	user = User.get(User.username == username)
+	if check_password_hash(user.password_hash, password):
+		login_user(user)
+		return 'Logged in.'
+
+	return "Bad login."
+
+
+@click.command()
+@click_utils.help_option()
+def logout():
+	""" Logout the current user. """
+	logout_user()
+	return "Logged out."
 
 
 @click.command()
