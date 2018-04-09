@@ -15,7 +15,7 @@ app = Flask(__name__)
 login_manager = LoginManager(app)
 app.secret_key = env.secret_key
 
-commands_list = ['clear', 'login', 'logout'] + commands.__all__
+commands_list = ['clear', 'login', 'logout', 'passwd'] + commands.__all__
 
 
 def get_prompt():
@@ -62,6 +62,21 @@ def logout():
 	logout_user()
 	return build_response('Logged out')
 
+@app.route('/passwd', methods=['POST'])
+def passwd():
+	if current_user.is_authenticated:
+		username = request.form.get('username')
+		password = request.form.get('password')
+		
+		if not models.User.select().where(models.User.username == username).exists():
+			return build_response('Error finding user')
+
+		models.User.update({models.User.password_hash: generate_password_hash(password)}).where(models.User.username == username).execute()
+
+		return build_response('Password updated')
+	
+	return build_response('Must be logged in to change password')
+	
 
 @app.route('/')
 def index():
