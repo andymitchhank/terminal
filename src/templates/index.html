@@ -115,12 +115,6 @@
 					.then( r => callback(r) )
 					.catch( e => callback("Something isn't right. Try using [command] --help for help.") );
 					break;
-				case 'logout':
-					fetch("/logout", {method: "POST", credentials: 'same-origin'})
-					.then( r => r.json() )
-					.then( r => callback(r) )
-					.catch( e => callback("Something isn't right. Try using [command] --help for help.") );
-					break;
 				default:
 					fetch("/run", {
 						method: "POST", 

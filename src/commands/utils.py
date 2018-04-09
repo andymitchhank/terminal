@@ -1,12 +1,12 @@
 import click
-from flask_login import current_user
+from flask_login import current_user, logout_user
 from werkzeug.security import generate_password_hash
 
 import click_utils
 from models import User
 
 
-__all__ = ['echo', 'help', 'passwd']
+__all__ = ['echo', 'help', 'logout', 'passwd']
 
 
 @click.command()
@@ -29,6 +29,14 @@ def help(ctx):
 def echo(text):
 	""" Echo back whatever was passed in. """
 	return text
+
+
+@click.command()
+@click_utils.help_option()
+def logout():
+	""" Logout the current user. """
+	logout_user()
+	return "Logged out."
 
 
 @click.command()

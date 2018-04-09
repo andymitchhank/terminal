@@ -15,7 +15,7 @@ app = Flask(__name__)
 login_manager = LoginManager(app)
 app.secret_key = env.secret_key
 
-commands_list = ['clear', 'login', 'logout', 'passwd'] + commands.__all__
+commands_list = ['clear', 'login'] + commands.__all__
 
 
 def get_prompt():
@@ -55,14 +55,8 @@ def login():
 		return build_response('Logged in')
 	
 	return build_response('Bad login')
-
-
-@app.route('/logout', methods=['POST'])
-def logout():
-	logout_user()
-	return build_response('Logged out')
 	
-	
+
 @app.route('/')
 def index():
 	return render_template('index.html', commands=json.dumps(commands_list), prompt=get_prompt())
