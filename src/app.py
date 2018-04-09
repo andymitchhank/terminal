@@ -2,7 +2,7 @@ import shlex
 import json
 
 import click
-from flask import Flask, render_template, jsonify, Blueprint, request, Markup
+from flask import Flask, render_template, jsonify, Blueprint, request
 from flask_login import LoginManager, current_user
 
 import commands
