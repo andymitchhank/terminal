@@ -136,7 +136,7 @@
 				}
 			})
 			.on('keypress', function(e) {
-				if(e.which == 13) {
+				if(e.which == 13 && !e.ctrlKey) {
 					e.preventDefault();
 					latestRequest().prop('disabled', true);
 					runCommand(latestRequestText(), function(data) {
