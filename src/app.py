@@ -61,23 +61,8 @@ def login():
 def logout():
 	logout_user()
 	return build_response('Logged out')
-
-@app.route('/passwd', methods=['POST'])
-def passwd():
-	if current_user.is_authenticated:
-		username = request.form.get('username')
-		password = request.form.get('password')
-		
-		if not models.User.select().where(models.User.username == username).exists():
-			return build_response('Error finding user')
-
-		models.User.update({models.User.password_hash: generate_password_hash(password)}).where(models.User.username == username).execute()
-
-		return build_response('Password updated')
 	
-	return build_response('Must be logged in to change password')
 	
-
 @app.route('/')
 def index():
 	return render_template('index.html', commands=json.dumps(commands_list), prompt=get_prompt())

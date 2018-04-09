@@ -121,17 +121,6 @@
 					.then( r => callback(r) )
 					.catch( e => callback("Something isn't right. Try using [command] --help for help.") );
 					break;
-				case 'passwd':
-					var password = commandWithParams.split(" ")[1];
-					var fd = new FormData();
-					fd.append('username', 'root');
-					fd.append('password', password);
-
-					fetch("/passwd", {method: "POST", credentials: 'same-origin', body: fd})
-					.then( r => r.json() )
-					.then( r => callback(r) )
-					.catch( e => callback("Something isn't right. Try using [command] --help for help.") );
-					break;
 				default:
 					fetch("/run", {
 						method: "POST", 
