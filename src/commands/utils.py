@@ -13,7 +13,7 @@ __all__ = ['echo', 'help', 'login', 'logout', 'passwd', 'working', 'cd', 'ls']
 @click_utils.help_option()
 @click.pass_context
 def help(ctx):
-	""" Help text for the applicaiton. Type 'help' to view this message.
+	""" Help text for the application. Type 'help' to view this message.
 
 		Available Commands: 
 		clear, echo, help	
