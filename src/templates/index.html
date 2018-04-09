@@ -100,8 +100,9 @@
 
 			switch(command) {
 				case 'clear':
+					var nextPrompt = getLatestPrompt();
 					$('.command').remove();
-					callback({next_prompt: getLatestPrompt(), result: ''});
+					callback({next_prompt: nextPrompt, result: ''});
 					break;
 				case 'login':
 					var password = commandWithParams.split(" ")[1];
@@ -116,6 +117,17 @@
 					break;
 				case 'logout':
 					fetch("/logout", {method: "POST", credentials: 'same-origin'})
+					.then( r => r.json() )
+					.then( r => callback(r) )
+					.catch( e => callback("Something isn't right. Try using [command] --help for help.") );
+					break;
+				case 'passwd':
+					var password = commandWithParams.split(" ")[1];
+					var fd = new FormData();
+					fd.append('username', 'root');
+					fd.append('password', password);
+
+					fetch("/passwd", {method: "POST", credentials: 'same-origin', body: fd})
 					.then( r => r.json() )
 					.then( r => callback(r) )
 					.catch( e => callback("Something isn't right. Try using [command] --help for help.") );
@@ -192,7 +204,7 @@
 	
 	<template id="command-template">
 		<div class='command'>
-			<textarea style="height: 1em;" class='withPrefix' rows='1' data-prompt='{{ prompt }}'>{{ prompt }}</textarea>
+			<textarea style="height: 1empx;" class='withPrefix' rows='1' data-prompt='{{ prompt }}'>{{ prompt }}</textarea>
 			<div class='response'></div>
 		</div>
 	</template>
