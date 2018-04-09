@@ -100,8 +100,9 @@
 
 			switch(command) {
 				case 'clear':
+					var nextPrompt = getLatestPrompt();
 					$('.command').remove();
-					callback({next_prompt: getLatestPrompt(), result: ''});
+					callback({next_prompt: nextPrompt, result: ''});
 					break;
 				case 'login':
 					var password = commandWithParams.split(" ")[1];
