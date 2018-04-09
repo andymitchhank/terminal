@@ -27,10 +27,12 @@ def help(ctx):
 
 @click.command()
 @click_utils.help_option()
+@click.option('-n', '--newline', is_flag=True, default=False)
 @click.argument('text', nargs=-1)
-def echo(text):
+def echo(text, newline):
 	""" Echo back arguments passed in. Strips extra whitespace. """
-	return ' '.join(text)
+	joiner = ' ' if not newline else '\n'
+	return joiner.join(text)
 
 
 @click.command()
