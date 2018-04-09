@@ -1,9 +1,12 @@
 import click
+from flask_login import current_user
+from werkzeug.security import generate_password_hash
 
 import click_utils
+from models import User
 
 
-__all__ = ['echo', 'help']
+__all__ = ['echo', 'help', 'passwd']
 
 
 @click.command()
@@ -26,3 +29,16 @@ def help(ctx):
 def echo(text):
 	""" Echo back whatever was passed in. """
 	return text
+
+
+@click.command()
+@click_utils.help_option()
+@click.argument('new_pass')
+def passwd(new_pass):
+	""" Update the current logged in user password. """
+	if not current_user.is_authenticated:
+		return "Must be logged in to change password."
+
+	current_user.password_hash = generate_password_hash(new_pass)
+	current_user.save()
+	return "Password changed."
