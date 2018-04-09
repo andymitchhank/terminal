@@ -1,3 +1,5 @@
+import re
+
 import click
 from flask_login import current_user, login_user, logout_user
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -6,7 +8,7 @@ import click_utils
 from models import User
 
 
-__all__ = ['echo', 'help', 'login', 'logout', 'passwd']
+__all__ = ['echo', 'help', 'login', 'logout', 'passwd', 'grep']
 
 
 @click.command()
@@ -67,3 +69,22 @@ def passwd(new_pass):
 	current_user.password_hash = generate_password_hash(new_pass)
 	current_user.save()
 	return "Password changed."
+
+
+@click.command()
+@click_utils.help_option()
+@click.argument('pattern')
+@click.argument('filename')
+def grep(pattern, filename):
+	content = filename
+	if False: # @TODO after filesystem is implemented, check if filename exists, load content from filename
+		pass
+
+	print(content)
+	print(content.split('\n'))
+
+	return '\n'.join(line for line in content.split('\n') if re.search(pattern, line))
+
+
+
+
