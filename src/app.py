@@ -71,7 +71,7 @@ def run_command():
 		if stderr is not None:
 			return build_response(stderr)
 
-	return build_response(stdout)
+	return build_response(stdout if stdout else '')
 
 
 if __name__ == '__main__':
