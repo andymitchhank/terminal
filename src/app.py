@@ -48,7 +48,6 @@ def index():
 	return render_template('index.html', commands=json.dumps(commands_list), prompt=get_prompt())
 
 
-
 @app.route('/run', methods=['POST'])
 def run_command():
 	commands = request.get_json()["command"].split('|')
@@ -59,17 +58,15 @@ def run_command():
 
 	for command, *stdin in (shlex.split(c) for c in commands):
 
-		if stdout is not None:
-			stdin.append(stdout)
-
 		if command not in commands_list:
-			return build_response(f"Command '{command}' not found.")
-
-		click_command = getattr(available_commands, command)
-		try: 
-			stdout = click_command.main(args=stdin, standalone_mode=False)
-		except HelpMessage as m:
-			stderr = str(m)
+			stderr = f"Command '{command}' not found."
+		else:
+			click_command = getattr(available_commands, command)
+			try: 
+				obj = {'stdout': stdout}
+				stdout = click_command.main(args=stdin, standalone_mode=False, obj=obj)
+			except HelpMessage as m:
+				stderr = str(m)
 
 		if stderr is not None:
 			return build_response(stderr)
