@@ -1,11 +1,11 @@
-import shlex
 import json
+import shlex
 
 import click
 from flask import Flask, render_template, jsonify, Blueprint, request
 from flask_login import LoginManager, current_user
 
-import commands
+import commands as available_commands
 from click_utils import HelpMessage
 from helpers import env
 import models
@@ -14,7 +14,7 @@ app = Flask(__name__)
 login_manager = LoginManager(app)
 app.secret_key = env.secret_key
 
-commands_list = ['clear'] + commands.__all__
+commands_list = ['clear'] + available_commands.__all__
 
 
 def get_prompt():
@@ -46,22 +46,33 @@ def index():
 	return render_template('index.html', commands=json.dumps(commands_list), prompt=get_prompt())
 
 
+
 @app.route('/run', methods=['POST'])
 def run_command():
-	command = shlex.split(request.get_json()["command"])
+	commands = request.get_json()["command"].split('|')
 
-	if command[0] not in commands_list:
-		return f"Command '{command[0]}' not found."
+	stdin = None
+	stdout = None
+	stderr = None
 
-	click_command = getattr(commands, command[0])
+	for command, *stdin in (shlex.split(c) for c in commands):
 
-	try: 
-		ctx = click_command.make_context('', command[1:])
-		result = click_command.invoke(ctx)
-	except HelpMessage as m:
-		result = str(m)
+		if stdout is not None:
+			stdin.append(stdout)
 
-	return build_response(result)
+		if command not in commands_list:
+			return build_response(f"Command '{command}' not found.")
+
+		click_command = getattr(available_commands, command)
+		try: 
+			stdout = click_command.main(args=stdin, standalone_mode=False)
+		except HelpMessage as m:
+			stderr = str(m)
+
+		if stderr is not None:
+			return build_response(stderr)
+
+	return build_response(stdout)
 
 
 if __name__ == '__main__':
