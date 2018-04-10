@@ -20,8 +20,7 @@ commands_list = ['clear'] + available_commands.__all__
 def get_prompt():
 	""" Build a prompt based on the current logged in user or guest """
 	username = 'guest'
-	working_directory_id = available_commands.utils.get_working_directory_id()
-	working_directory_path = models.FileSystemEntry.get(models.FileSystemEntry.id == working_directory_id).get_full_path()
+	working_directory_id = available_commands.file_system.get_working_directory_id()
 	if current_user.is_authenticated:
 		username = current_user.username
 	return f'{username}@{request.host}:{working_directory_path} $ '
