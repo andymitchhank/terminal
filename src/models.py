@@ -4,9 +4,6 @@ from werkzeug.security import generate_password_hash
 
 from helpers import env
 
-import logging
-
-
 db = PostgresqlDatabase('gonano', user=env.data_db_user, password=env.data_db_pass, host=env.data_db_host)
 
 
@@ -18,7 +15,6 @@ class BaseModel(Model):
 class User(BaseModel, UserMixin):
 	username = CharField(unique=True)
 	password_hash = CharField()
-	working_directory = IntegerField()
 
 	def exists(username=None, id=None):
 		if username is None and id is None:
@@ -29,41 +25,33 @@ class User(BaseModel, UserMixin):
 
 		if username is not None:
 			return User.select().where(User.username == username).exists()
+	
 
-
-class Directory(BaseModel):
-	id = IntegerField()
-	parent = IntegerField()
-	depth = IntegerField()
+class FileSystemEntry(BaseModel):
+	parent = ForeignKeyField(model='self', field='id', index=True)
 	name = CharField()
+	depth = IntegerField()
+	is_directory = BooleanField()
+	content = BlobField(null = True)
+	extension = CharField(null = True)
 
 	def get_full_path(self):
-		if self.id is not None:
-			if self.id is not 0:
-				return Directory.get(Directory.id == self.parent).get_full_path() + '\\' + self.name
-			else:
-				return self.name
+		if self.id is not 1:#magic number root id
+			return f'{FileSystemEntry.get(FileSystemEntry.id == self.parent).get_full_path()}\{self.name}'
+		else:
+			return self.name
 
-#maybe what a File will look like
-class File(BaseModel):
-	id = IntegerField()
-	directory_id = IntegerField()
-	name = CharField()
-	content = BlobField()
-	extension = CharField()
-
-models = [User, Directory, File]
+models = [User, FileSystemEntry]
 
 for model in models: 
 	model.drop_table(fail_silently=True)
 	model.create_table(fail_silently=True)
 
 if not User.select().where(User.username == 'root').exists():
-	User.create(username='root', password_hash=generate_password_hash('toor'), working_directory=1)
+	User.create(username='root', password_hash=generate_password_hash('toor'))
 
-#demo data for testing
-if not Directory.select().where(Directory.id == 0 or Directory.id == 1 or Directory.id == 2 or Directory.id == 3).exists():
-	Directory.create(id=0, parent=-1, depth=0, name='root')
-	Directory.create(id=1, parent=0, depth=1, name='first')
-	Directory.create(id=2, parent=1, depth=2, name='second')
-	Directory.create(id=3, parent=0, depth=1, name='first2')
+#demo data for testing directories
+FileSystemEntry.create(parent=1, name='root', depth=0, is_directory=True)#points at itself for now
+FileSystemEntry.create(parent=1, name='first', depth=1, is_directory=True)
+FileSystemEntry.create(parent=2, name='second', depth=2, is_directory=True)
+FileSystemEntry.create(parent=1, name='first2', depth=1, is_directory=True)
