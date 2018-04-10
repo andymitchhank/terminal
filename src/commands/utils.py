@@ -131,16 +131,13 @@ def set_working_directory_id(id):
 @click.command()
 @click_utils.help_option()
 @click.argument('pattern')
-@click.argument('filename')
-def grep(pattern, filename):
-	content = filename
-	if False: # @TODO after filesystem is implemented, check if filename exists, load content from filename
-		pass
+@click.argument('filenames', nargs=-1)
+@click.pass_context
+def grep(ctx, pattern, filenames):
+	if not filenames:
+		return _grep(pattern, ctx.obj['stdout'])
 
-	print(content)
-	print(content.split('\n'))
-
-	return '\n'.join(line for line in content.split('\n') if re.search(pattern, line))
+	return "grepping files not implemented"
 
 
 
