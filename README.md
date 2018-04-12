@@ -4,10 +4,10 @@ A simple terminal web application built using minimal amounts of html, js, css. 
 
 ## Running
 
-1. Install [Nanobox](https://docs.nanobox.io/install/). You'll probably have to make an account.
+1. Install [Nanobox](https://docs.nanobox.io/install/). You'll probably have to make an account. You will need the credentials later.
 2. `cd` into repo
-3. Run `nanobox dns local terminal.local` 
-4. Run `nanobox run`. It'll will drop you into a new shell.
+3. Run `nanobox dns local terminal.local` (windows: `nanobox dns add local terminal.local`)
+4. Run `nanobox run`. It will drop you into a new shell.
 5. Run `python src/app.py`.
 5. Navigate to terminal.local:5000 in a browser. 
 6. Do some dev. 
