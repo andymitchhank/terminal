@@ -55,37 +55,17 @@ def prompt():
 	return get_prompt()
 
 
-def _redirect_io(path, append, stdout):
-	if path and path[0] != '/':
-		path = os.path.join(fs.working_path(), path)
-
-	f = FileSystemEntry.find_file(path, True)
-	if append and f.content is not None:
-		stdout = f'{f.content}\n{stdout}'
-	f.content = stdout
-	f.save()
-
 
 @app.route('/run', methods=['POST'])
 def run_command():
-	commands = request.get_json()["command"].split('|')
+	commands = (request.get_json()["command"]
+				.replace('>>', '| redirect_io_append ')
+				.replace('>', '| redirect_io ')
+				.split('|'))
 
 	stdin = None
 	stdout = None
 	stderr = None
-
-	redirect_io = None
-	final_command = commands[-1]
-	if '>>' in final_command:
-		c, f = final_command.split('>>', 1)
-		redirect_io = partial(_redirect_io, f.strip(), True)
-		commands[-1] = c
-
-	elif '>' in final_command:
-		c, f = final_command.split('>', 1)
-		redirect_io = partial(_redirect_io, f.strip(), False)
-		commands[-1] = c
-
 
 	for command, *stdin in (shlex.split(c) for c in commands):
 
@@ -102,10 +82,6 @@ def run_command():
 		if stderr is not None:
 			return build_response(stderr)
 
-
-	if redirect_io is not None:
-		redirect_io(stdout)
-		stdout = None
 		
 	return build_response(stdout if stdout else '')
 

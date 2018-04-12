@@ -8,7 +8,7 @@ from models import FileSystemEntry
 from helpers import FileSystem as fs
 
 
-__all__ = ['pwd', 'cd', 'ls', 'cat']
+__all__ = ['pwd', 'cd', 'ls', 'cat', 'redirect_io', 'redirect_io_append']
 
 
 @click.command()
@@ -69,4 +69,36 @@ def cat(filename):
 		return f'"{entry.name}" is a directory'	
 
 	return entry.content
+
+
+def _redirect_io(path, append, stdout):
+	if path and path[0] != '/':
+		path = os.path.join(fs.working_path(), path)
+
+	f = FileSystemEntry.find_file(path, True)
+	if append and f.content is not None:
+		stdout = f'{f.content}\n{stdout}'
+	f.content = stdout
+	f.save()
+
+
+@click.command()
+@click_utils.help_option()
+@click.argument('path')
+@click.pass_context
+def redirect_io(ctx, path):
+	""" A special command to handle > """
+	_redirect_io(path, False, ctx.obj['stdout'])
+
+
+@click.command()
+@click_utils.help_option()
+@click.argument('path')
+@click.pass_context
+def redirect_io_append(ctx, path):
+	""" A special command to handle >> """
+	_redirect_io(path, True, ctx.obj['stdout'])
+
+
+
 
