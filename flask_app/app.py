@@ -12,13 +12,13 @@ import requests
 
 import commands as available_commands
 from click_utils import HelpMessage
-from helpers import env, is_dev, FileSystem as fs
+from helpers import is_dev, FileSystem as fs
 from models import FileSystemEntry, User
 
 app = Flask(__name__, static_folder=None)
 sockets = Sockets(app)
 login_manager = LoginManager(app)
-app.secret_key = env.secret_key
+app.secret_key = os.environ.get('SECRET_KEY', 'dev')
 
 react_app_build = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../react_app/build'))
 serve_react_file = partial(send_from_directory, react_app_build)

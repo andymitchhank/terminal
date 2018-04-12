@@ -10,14 +10,19 @@ is_dev = os.environ.get('IS_DEV', '') == '1'
 
 class FileSystem(object):
 
-	@staticmethod
 	def working():
 		return session.get('working_directory_id', 1)
 
-	@staticmethod
 	def working_path():
-		return FileSystemEntry.get_full_path(FileSystem.working())
+		path = FileSystemEntry.get_full_path(FileSystem.working())
+		return path if path else '/'
 
-	@staticmethod
 	def working_dir():
-		return FileSystemEntry.get(FileSystemEntry.id == FileSystem.working()).name
+		name = FileSystem.working_entry().name
+		return name if name else '/'
+
+	def working_entry():
+		return FileSystemEntry.get_by_id(FileSystem.working())
+
+	def set_working(id):
+		session['working_directory_id'] = id

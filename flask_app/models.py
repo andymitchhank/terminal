@@ -53,6 +53,14 @@ class FileSystemEntry(BaseModel):
 	def get_by_id(id):
 		return FileSystemEntry.get(FileSystemEntry.id == id)
 
+	def has_child(parent_id, child_name):
+		return (FileSystemEntry
+				.select()
+				.where(
+					FileSystemEntry.name == child_name, 
+					FileSystemEntry.parent_id == parent_id)
+				.exists())
+
 	def find_dir(path):
 		if path[-1] == '/':
 			path = path[:-1]
