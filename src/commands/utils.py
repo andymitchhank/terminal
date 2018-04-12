@@ -1,3 +1,5 @@
+import re
+
 import click
 from flask import session
 from flask_login import current_user, login_user, logout_user
@@ -6,7 +8,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 import click_utils
 from models import User, FileSystemEntry
 
-__all__ = ['echo', 'help', 'login', 'logout', 'passwd', 'pwd', 'cd', 'ls']
+__all__ = ['echo', 'help', 'login', 'logout', 'passwd', 'pwd', 'cd', 'ls', 'grep']
 
 
 @click.command()
@@ -25,10 +27,12 @@ def help(ctx):
 
 @click.command()
 @click_utils.help_option()
-@click.argument('text')
-def echo(text):
-	""" Echo back whatever was passed in. """
-	return text
+@click.option('-n', '--newline', is_flag=True, default=False)
+@click.argument('text', nargs=-1)
+def echo(text, newline):
+	""" Echo back arguments passed in. Strips extra whitespace. """
+	joiner = ' ' if not newline else '\n'
+	return joiner.join(text)
 
 
 @click.command()
@@ -123,3 +127,20 @@ def get_working_directory_id():
 
 def set_working_directory_id(id):
 	session['working_directory_id'] = id
+
+@click.command()
+@click_utils.help_option()
+@click.argument('pattern')
+@click.argument('filename')
+def grep(pattern, filename):
+	content = filename
+	if False: # @TODO after filesystem is implemented, check if filename exists, load content from filename
+		pass
+
+	print(content)
+	print(content.split('\n'))
+
+	return '\n'.join(line for line in content.split('\n') if re.search(pattern, line))
+
+
+
