@@ -2,6 +2,7 @@ from functools import partial
 import json
 import shlex
 import os
+from urllib.parse import urlparse
 
 import click
 from flask import Flask, render_template, jsonify, Blueprint, request, send_from_directory, Response
@@ -11,7 +12,7 @@ import requests
 
 import commands as available_commands
 from click_utils import HelpMessage
-from helpers import env
+from helpers import env, is_dev
 import models
 
 app = Flask(__name__, static_folder=None)
@@ -88,11 +89,11 @@ def run_command():
 
 
 def _proxy():
-	print('proxying')
+	hostname = urlparse(request.url).netloc
 
 	resp = requests.request(
 		method = request.method,
-		url=request.url.replace('terminal.local:5000', 'localhost:3000'),
+		url=request.url.replace(hostname, 'localhost:3000'),
 		headers={key: value for key, value in request.headers if key != 'Host'},
 		data=request.get_data(),
 		cookies=request.cookies,
@@ -107,8 +108,8 @@ def _proxy():
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
 def serve_react(path):
-	# if True:
-	# 	return _proxy()
+	if is_dev:
+		return _proxy()
 
 	if not path or not os.path.exists(os.path.join(react_app_build, path)):
 		return serve_react_file('index.html')
