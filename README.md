@@ -15,3 +15,4 @@ A simple terminal web application built on React, Flask, and Click.
 8. Goto 5.
 
 I'm looking into a live reload solution for Flask. Soon hopefully.
+
