@@ -1,6 +1,6 @@
 # Terminal
 
-A simple terminal web application built using minimal amounts of html, js, css. Built on top of Flask and Click.
+A simple terminal web application built on React, Flask, and Click.
 
 ## Running
 
