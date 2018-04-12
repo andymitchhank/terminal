@@ -55,7 +55,6 @@ def prompt():
 	return get_prompt()
 
 
-
 @app.route('/run', methods=['POST'])
 def run_command():
 	commands = (request.get_json()["command"]
