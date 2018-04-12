@@ -7,9 +7,6 @@ run.config:
     - nginx
   dev_packages:
     - nodejs
-  extra_steps:
-    - 'cd /app/react_app && npm install'
-    - 'cd /app/react_app && npm run build'
 
 web.main:
   start:
@@ -20,6 +17,12 @@ web.main:
 
 data.db:
   image: nanobox/postgresql:9.5
+
+deploy.config: 
+  extra_steps:
+    - 'cd /app/react_app && npm install'
+    - 'cd /app/react_app && npm run build'
+
 
 # worker.main:
 #   start: 'python jobs-worker.py'
