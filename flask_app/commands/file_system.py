@@ -13,24 +13,30 @@ __all__ = ['pwd', 'cd', 'ls']
 
 @click.command()
 @click_utils.help_option()
-@click.argument('directory_name')
-def cd(directory_name):
+@click.argument('dir_name')
+def cd(dir_name):
 	""" Change directory to the provided directory name. Use .. or move down one directory at a time."""
 	working = fs.working()
+	working_entry = fs.working_entry()
 
-	if directory_name == '.':
+	if dir_name == '.':
 		return
 
-	if directory_name == "..":
-		if working != 1:#magic number - root
-			move_working_up(working)
+	if dir_name == "..":
+		parent = working_entry.parent
+		if parent:
+			fs.set_working(parent.id)
 		return
 
-	if not FileSystemEntry.has_child(working, directory_name):
-		path = os.path.join(fs.working_path(), directory_name)
-		return f"Directory {path} not found."
-	else:	
-		move_working_down(directory_name)
+	child = FileSystemEntry.get_child(working, dir_name)
+
+	if not child: 
+		return f'Directory "{dir_name}" not found'
+
+	if not child.is_directory:
+		return f'"{child.name}" is not a directory'
+		
+	fs.set_working(child.id)
 
 
 @click.command()
@@ -48,19 +54,4 @@ def ls():
 					.select()
 					.where(FileSystemEntry.parent_id == fs.working()))
 	return "\n".join(sorted(child.name for child in children))
-
-
-def move_working_up(working):
-	parent_id = FileSystemEntry.get(FileSystemEntry.id == working).parent_id
-	fs.set_working(parent_id)
-
-
-def move_working_down(directory_name):
-	child = (FileSystemEntry
-				.get(
-					FileSystemEntry.name == directory_name, 
-					FileSystemEntry.parent_id == fs.working()))
-	fs.set_working(child.id)
-
-
 
