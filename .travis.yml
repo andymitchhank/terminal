@@ -2,10 +2,9 @@ dist: trusty
 sudo: required
 install: sudo bash -c "$(curl -fsSL https://s3.amazonaws.com/tools.nanobox.io/bootstrap/ci.sh)"
 script: nanobox run pytest --rootdir /app/flask_app
-after_success:
-  - nanobox remote add terminal
-  - nanobox deploy
-branches:
-  only: 
-    - master
 
+deploy: 
+  provider: script
+  script: nanobox remote add terminal && nanobox deploy
+  on:
+    branch: master
