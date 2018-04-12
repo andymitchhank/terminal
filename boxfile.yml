@@ -7,6 +7,9 @@ run.config:
     - nginx
   dev_packages:
     - nodejs
+  extra_steps:
+    - 'cd /app/react_app && npm install'
+    - 'cd /app/react_app && npm run build'
 
 web.main:
   start:
