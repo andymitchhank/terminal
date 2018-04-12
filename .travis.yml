@@ -5,3 +5,7 @@ script: nanobox run pytest --rootdir /app/flask_app
 after_success:
   - nanobox remote add terminal
   - nanobox deploy
+branches:
+  only: 
+    - master
+
