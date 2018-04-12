@@ -28,8 +28,12 @@ def help(ctx):
 @click_utils.help_option()
 @click.option('-n', '--newline', is_flag=True, default=False)
 @click.argument('text', nargs=-1)
-def echo(text, newline):
+@click.pass_context
+def echo(ctx, text, newline):
 	""" Echo back arguments passed in. Strips extra whitespace. """
+	if not text: 
+		text = [ctx.obj['stdout']]
+
 	joiner = ' ' if not newline else '\n'
 	return joiner.join(text)
 
@@ -72,16 +76,21 @@ def passwd(new_pass):
 	return "Password changed."
 
 
+def _grep(pattern, text):
+	return '\n'.join(line for line in text.split('\n') if re.search(pattern, line))
+
+
 @click.command()
 @click_utils.help_option()
 @click.argument('pattern')
 @click.argument('filenames', nargs=-1)
 @click.pass_context
 def grep(ctx, pattern, filenames):
+	""" Search for a pattern in files or stdout if piped """
 	if not filenames:
 		return _grep(pattern, ctx.obj['stdout'])
 
-	return "grepping files not implemented"
+	return "Grepping files not implemented"
 
 
 
