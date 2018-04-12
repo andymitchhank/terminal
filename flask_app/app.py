@@ -81,7 +81,7 @@ def run_command():
 		redirect_io = partial(_redirect_io, f.strip(), True)
 		commands[-1] = c
 
-	if '>' in final_command:
+	elif '>' in final_command:
 		c, f = final_command.split('>', 1)
 		redirect_io = partial(_redirect_io, f.strip(), False)
 		commands[-1] = c
