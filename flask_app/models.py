@@ -76,7 +76,6 @@ class FileSystemEntry(BaseModel):
 			FileSystemEntry.is_directory == True)
 
 		for d in possible_dirs:
-			print(d.get_full_path())
 			if d.get_full_path() == path:
 				return d
 
