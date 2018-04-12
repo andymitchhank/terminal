@@ -8,7 +8,7 @@ from models import FileSystemEntry
 from helpers import FileSystem as fs
 
 
-__all__ = ['pwd', 'cd', 'ls']
+__all__ = ['pwd', 'cd', 'ls', 'cat']
 
 
 @click.command()
@@ -54,4 +54,19 @@ def ls():
 					.select()
 					.where(FileSystemEntry.parent_id == fs.working()))
 	return "\n".join(sorted(child.name for child in children))
+
+
+@click.command()
+@click_utils.help_option()
+@click.argument('filename')
+def cat(filename):
+	entry = FileSystemEntry.get_child(fs.working(), filename)
+
+	if not entry:
+		return f'"{filename}" not found'
+
+	if entry.is_directory:
+		return f'"{entry.name}" is a directory'	
+
+	return entry.content
 
