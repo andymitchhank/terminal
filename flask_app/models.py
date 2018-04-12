@@ -1,3 +1,5 @@
+import os
+
 from flask_login import UserMixin
 from peewee import *
 from werkzeug.security import generate_password_hash
@@ -37,9 +39,9 @@ class FileSystemEntry(BaseModel):
 
 	def get_full_path(self):
 		if self.id is not 1:#magic number root id
-			return f'{FileSystemEntry.get(FileSystemEntry.id == self.parent).get_full_path()}\{self.name}'
+			return os.path.join(FileSystemEntry.get(FileSystemEntry.id == self.parent).get_full_path(), self.name)
 		else:
-			return self.name
+			return '/'
 
 models = [User, FileSystemEntry]
 
@@ -51,7 +53,7 @@ if not User.select().where(User.username == 'root').exists():
 	User.create(username='root', password_hash=generate_password_hash('toor'))
 
 #demo data for testing directories
-FileSystemEntry.create(parent=1, name='root', depth=0, is_directory=True)#points at itself for now
+FileSystemEntry.create(parent=1, name='/', depth=0, is_directory=True)#points at itself for now
 FileSystemEntry.create(parent=1, name='first', depth=1, is_directory=True)
 FileSystemEntry.create(parent=2, name='second', depth=2, is_directory=True)
 FileSystemEntry.create(parent=1, name='first2', depth=1, is_directory=True)

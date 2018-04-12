@@ -1,0 +1,27 @@
+* {
+  font-family: 'Source Code Pro', monospace;
+  font-size: 1em;
+}
+
+
+.App {
+  text-align: left;
+  font-size: 1em;
+  padding: 10px;
+}
+
+ul {
+  list-style-type: none;
+}
+
+*:focus {
+  outline: none;
+}
+
+textarea {
+  width: 100%;
+  background-color: transparent;
+  border: none;
+  resize: none;
+  font-size: 1em;
+}
