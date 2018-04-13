@@ -5,75 +5,100 @@ from flask import session
 
 import click_utils
 from models import FileSystemEntry
+from helpers import FileSystem as fs
 
 
-__all__ = ['pwd', 'cd', 'ls']
+__all__ = ['pwd', 'cd', 'ls', 'cat', 'redirect_io', 'redirect_io_append']
 
 
 @click.command()
 @click_utils.help_option()
-@click.argument('directory_name')
-def cd(directory_name):
+@click.argument('dir_name')
+def cd(dir_name):
 	""" Change directory to the provided directory name. Use .. or move down one directory at a time."""
-	working_directory_id = get_working_directory_id()
+	working = fs.working()
+	working_entry = fs.working_entry()
 
-	if directory_name == '.':
+	if dir_name == '.':
 		return
 
-	#look up
-	if directory_name == "..":
-		if working_directory_id != 1:#magic number - root
-			move_working_up(working_directory_id)
+	if dir_name == "..":
+		parent = working_entry.parent
+		if parent:
+			fs.set_working(parent.id)
 		return
 
-	#look down
-	if not FileSystemEntry.select().where((FileSystemEntry.name == directory_name) & (FileSystemEntry.parent_id == working_directory_id)).exists():
-		return "Directory " + os.path.join(FileSystemEntry.get(FileSystemEntry.id == working_directory_id).get_full_path(), directory_name)+ " not found."
-	else:	
-		move_working_down(directory_name)
+	child = FileSystemEntry.get_child(working, dir_name)
+
+	if not child: 
+		return f'Directory "{dir_name}" not found'
+
+	if not child.is_directory:
+		return f'"{child.name}" is not a directory'
+		
+	fs.set_working(child.id)
 
 
 @click.command()
 @click_utils.help_option()
 def pwd():
 	""" Returns the working directory path. """
-	working_directory_id = get_working_directory_id()
-	return FileSystemEntry.get(FileSystemEntry.id == working_directory_id).get_full_path()
+	return FileSystemEntry.get_full_path(fs.working())
 
 
 @click.command()
 @click_utils.help_option()
 def ls():
 	""" Returns the working directory path. """
-	working_directory_id = get_working_directory_id()
-	current_and_up = ['.', '..'] if working_directory_id != 1 else ['.']
-
-	children = FileSystemEntry.select().where(FileSystemEntry.parent_id == working_directory_id)
-
-	if not children:
-		return '\n'.join(current_and_up)
-	else:
-		return "\n".join(current_and_up + sorted(child.name for child in children if child.depth != 0))#handle root self-referencing for now
+	children = (FileSystemEntry
+					.select()
+					.where(FileSystemEntry.parent_id == fs.working()))
+	return "\n".join(sorted(child.name for child in children))
 
 
-def move_working_up(working_directory_id):
-	parent_id = FileSystemEntry.get(FileSystemEntry.id == working_directory_id).parent_id
-	set_working_directory_id(parent_id)
-	return "Working directory is now " + FileSystemEntry.get(FileSystemEntry.id == parent_id).get_full_path()
+@click.command()
+@click_utils.help_option()
+@click.argument('filename')
+def cat(filename):
+	entry = FileSystemEntry.get_child(fs.working(), filename)
+
+	if not entry:
+		return f'"{filename}" not found'
+
+	if entry.is_directory:
+		return f'"{entry.name}" is a directory'	
+
+	return entry.content
 
 
-def move_working_down(directory_name):
-	working_directory_id = get_working_directory_id()
-	child = FileSystemEntry.get((FileSystemEntry.name == directory_name) & (FileSystemEntry.parent_id == working_directory_id))
-	set_working_directory_id(child.id)
-	return "Working directory is now " + child.get_full_path()
+def _redirect_io(path, append, stdout):
+	if path and path[0] != '/':
+		path = os.path.join(fs.working_path(), path)
+
+	f = FileSystemEntry.find_file(path, True)
+	if append and f.content is not None:
+		stdout = f'{f.content}\n{stdout}'
+	f.content = stdout
+	f.save()
 
 
-def get_working_directory_id():
-	if 'working_directory_id' not in session:
-		set_working_directory_id(1)#this is a magic number and bad. current id for root dir (first auto-incremented primary key)
-	return session['working_directory_id']
+@click.command()
+@click_utils.help_option()
+@click.argument('path')
+@click.pass_context
+def redirect_io(ctx, path):
+	""" A special command to handle > """
+	_redirect_io(path, False, ctx.obj['stdout'])
 
 
-def set_working_directory_id(id):
-	session['working_directory_id'] = id
+@click.command()
+@click_utils.help_option()
+@click.argument('path')
+@click.pass_context
+def redirect_io_append(ctx, path):
+	""" A special command to handle >> """
+	_redirect_io(path, True, ctx.obj['stdout'])
+
+
+
+
