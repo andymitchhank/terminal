@@ -117,6 +117,10 @@ for model in models:
 if not User.select().where(User.username == 'root').exists():
 	User.create(username='root', password_hash=generate_password_hash('toor'))
 
+if not FileSystemEntry.select().exists():
+	FileSystemEntry.create(name='', depth=0, is_directory=True)
+	
+
 def create_test_data():
 	FileSystemEntry.create(name='', depth=0, is_directory=True)#points at itself for now
 	FileSystemEntry.create(parent=1, name='first', depth=1, is_directory=True)
