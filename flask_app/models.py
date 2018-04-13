@@ -117,13 +117,10 @@ for model in models:
 if not User.select().where(User.username == 'root').exists():
 	User.create(username='root', password_hash=generate_password_hash('toor'))
 
-#demo data for testing directories
-FileSystemEntry.create(name='', depth=0, is_directory=True)#points at itself for now
-FileSystemEntry.create(parent=1, name='first', depth=1, is_directory=True)
-FileSystemEntry.create(parent=2, name='second', depth=2, is_directory=True)
-FileSystemEntry.create(parent=1, name='first2', depth=1, is_directory=True)
-FileSystemEntry.create(parent=3, name='second_file', depth=3, is_directory=False)
-
-FileSystemEntry.find_file('/first/second/second_file')
-FileSystemEntry.find_dir('/first')
-FileSystemEntry.find_file('/first/create', True)
+def create_test_data():
+	FileSystemEntry.create(name='', depth=0, is_directory=True)#points at itself for now
+	FileSystemEntry.create(parent=1, name='first', depth=1, is_directory=True)
+	FileSystemEntry.create(parent=2, name='second', depth=2, is_directory=True)
+	FileSystemEntry.create(parent=1, name='first2', depth=1, is_directory=True)
+	FileSystemEntry.create(parent=3, name='second_file', depth=3, is_directory=False)
+	

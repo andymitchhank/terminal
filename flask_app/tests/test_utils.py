@@ -23,5 +23,3 @@ def test_echo_ignores_stdout_with_params():
 	result = echo.main(args=[to_echo], standalone_mode=False, obj=obj)
 	assert to_echo != stdout
 	assert to_echo == result
-
-
