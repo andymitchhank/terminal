@@ -4,9 +4,12 @@ from flask_login import UserMixin
 from peewee import *
 from werkzeug.security import generate_password_hash
 
-from helpers import env
 
-db = PostgresqlDatabase('gonano', user=env.data_db_user, password=env.data_db_pass, host=env.data_db_host)
+db = PostgresqlDatabase(
+	'gonano', 
+	user=os.environ['DATA_DB_USER'], 
+	password=os.environ['DATA_DB_PASS'], 
+	host=os.environ['DATA_DB_HOST'])
 
 
 class BaseModel(Model):
@@ -30,18 +33,80 @@ class User(BaseModel, UserMixin):
 	
 
 class FileSystemEntry(BaseModel):
-	parent = ForeignKeyField(model='self', field='id', index=True)
+	parent = ForeignKeyField(model='self', field='id', null=True)
 	name = CharField()
 	depth = IntegerField()
 	is_directory = BooleanField()
-	content = BlobField(null = True)
-	extension = CharField(null = True)
+	content = CharField(null=True)
+	extension = CharField(null=True)
 
-	def get_full_path(self):
-		if self.id is not 1:#magic number root id
-			return os.path.join(FileSystemEntry.get(FileSystemEntry.id == self.parent).get_full_path(), self.name)
-		else:
-			return '/'
+	def get_full_path(id):
+		entry = FileSystemEntry.get(FileSystemEntry.id == id)
+		parts = []
+		while entry: 
+			parts.append(entry.name)
+			entry = entry.parent
+
+		return '/'.join(reversed(parts))
+
+
+	def get_by_id(id):
+		return FileSystemEntry.get(FileSystemEntry.id == id)
+
+	def get_child(parent_id, child_name):
+		query = (FileSystemEntry
+				.select()
+				.where(FileSystemEntry.name == child_name, 
+					   FileSystemEntry.parent_id == parent_id))
+		
+		if query.exists():
+			return query.get()
+
+	def find_dir(path):
+		if path[-1] == '/':
+			path = path[:-1]
+
+		directories = path.split('/')
+		dir_name = directories[-1]
+		depth = len(directories) - 1
+
+		possible_dirs = FileSystemEntry.select().where(
+			FileSystemEntry.name == dir_name and
+			FileSystemEntry.depth == depth and 
+			FileSystemEntry.is_directory == True)
+
+		for d in possible_dirs:
+			if d.get_full_path() == path:
+				return d
+
+		return None
+
+
+	def find_file(path, create=False):
+		dirs, file_name = os.path.split(path)
+		dir_list = dirs.split('/')
+		depth = len(dir_list)
+
+		possible_files = FileSystemEntry.select().where(
+			FileSystemEntry.name == file_name and 
+			FileSystemEntry.depth == depth and
+			FileSystemEntry.is_directory == False)
+
+		for f in possible_files:
+			if f.get_full_path() == path:
+				return f
+
+		if create:
+			d = FileSystemEntry.find_dir(dirs)
+			if not d: 
+				raise Exception
+
+			return FileSystemEntry.create(
+				parent=d.id, 
+				name=file_name, 
+				depth=d.depth+1, 
+				is_directory=False)	
+
 
 models = [User, FileSystemEntry]
 
@@ -52,8 +117,13 @@ for model in models:
 if not User.select().where(User.username == 'root').exists():
 	User.create(username='root', password_hash=generate_password_hash('toor'))
 
-#demo data for testing directories
-FileSystemEntry.create(parent=1, name='/', depth=0, is_directory=True)#points at itself for now
-FileSystemEntry.create(parent=1, name='first', depth=1, is_directory=True)
-FileSystemEntry.create(parent=2, name='second', depth=2, is_directory=True)
-FileSystemEntry.create(parent=1, name='first2', depth=1, is_directory=True)
+if not FileSystemEntry.select().exists():
+	FileSystemEntry.create(name='', depth=0, is_directory=True)
+
+
+def create_test_data():
+	FileSystemEntry.create(parent=1, name='first', depth=1, is_directory=True)
+	FileSystemEntry.create(parent=2, name='second', depth=2, is_directory=True)
+	FileSystemEntry.create(parent=1, name='first2', depth=1, is_directory=True)
+	FileSystemEntry.create(parent=3, name='second_file', depth=3, is_directory=False)
+	

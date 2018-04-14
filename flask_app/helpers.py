@@ -1,14 +1,28 @@
 import os
 
+from flask import session
 
-class EnvironmentType(type):
-
-	def __getattr__(cls, name):
-		return os.environ.get(name.upper(), None)
+from models import FileSystemEntry
 
 
-class env(object, metaclass=EnvironmentType):
-	pass
+is_dev = os.environ.get('IS_DEV', '') == '1' 
 
 
-is_dev = env.is_dev == '1' 
+class FileSystem(object):
+
+	def working():
+		return session.get('working_directory_id', 1)
+
+	def working_path():
+		path = FileSystemEntry.get_full_path(FileSystem.working())
+		return path if path else '/'
+
+	def working_dir():
+		name = FileSystem.working_entry().name
+		return name if name else '/'
+
+	def working_entry():
+		return FileSystemEntry.get_by_id(FileSystem.working())
+
+	def set_working(id):
+		session['working_directory_id'] = id

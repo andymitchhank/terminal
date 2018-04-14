@@ -12,13 +12,13 @@ import requests
 
 import commands as available_commands
 from click_utils import HelpMessage
-from helpers import env, is_dev
-import models
+from helpers import is_dev, FileSystem as fs
+from models import FileSystemEntry, User
 
 app = Flask(__name__, static_folder=None)
 sockets = Sockets(app)
 login_manager = LoginManager(app)
-app.secret_key = env.secret_key
+app.secret_key = os.environ.get('SECRET_KEY', 'dev')
 
 react_app_build = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../react_app/build'))
 serve_react_file = partial(send_from_directory, react_app_build)
@@ -30,11 +30,9 @@ commands_list = ['clear'] + available_commands.__all__
 def get_prompt():
 	""" Build a prompt based on the current logged in user or guest """
 	username = 'guest'
-	working_directory_id = available_commands.file_system.get_working_directory_id()
-	working_directory_path = models.FileSystemEntry.get(models.FileSystemEntry.id == working_directory_id).name
 	if current_user.is_authenticated:
 		username = current_user.username
-	return f'{username}@{request.host}:{working_directory_path} $ '
+	return f'{username}@{request.host}:{fs.working_dir()} $ '
 
 
 def build_response(result):
@@ -47,15 +45,10 @@ def build_response(result):
 
 @login_manager.user_loader
 def load_user(id):
-	if not models.User.select().where(models.User.id == id).exists():
+	if not User.exists(id):
 		return
-
-	return models.User.get(models.User.id == id)	
+	return User.get(User.id == id)	
 	
-
-# @app.route('/')
-# def index():
-# 	return render_template('index.html', commands=json.dumps(commands_list), prompt=get_prompt())
 
 @app.route('/prompt', methods=['GET'])
 def prompt():
@@ -64,7 +57,10 @@ def prompt():
 
 @app.route('/run', methods=['POST'])
 def run_command():
-	commands = request.get_json()["command"].split('|')
+	commands = (request.get_json()["command"]
+				.replace('>>', '| redirect_io_append ')
+				.replace('>', '| redirect_io ')
+				.split('|'))
 
 	stdin = None
 	stdout = None
@@ -85,6 +81,7 @@ def run_command():
 		if stderr is not None:
 			return build_response(stderr)
 
+		
 	return build_response(stdout if stdout else '')
 
 
