@@ -142,7 +142,9 @@ class App extends React.Component<AppProps, AppState> {
   }
 
   getInitialPrompt = async () => {
-    fetch('/prompt')
+    fetch('/prompt', {
+      credentials: 'same-origin'  
+    })
     .then(r => r.text())
     .then(t => this.setState({prompts: [t], requests: [], results: []}));
   }
@@ -160,7 +162,7 @@ class App extends React.Component<AppProps, AppState> {
     fetch('/run', {
       method: 'POST', 
       headers: {'content-type': 'application/json;'},
-      credentials: 'same-origin',
+      credentials: 'include',
       body: JSON.stringify({ command: request })
     })
     .then( r => r.json() )
