@@ -162,7 +162,7 @@ class App extends React.Component<AppProps, AppState> {
     fetch('/run', {
       method: 'POST', 
       headers: {'content-type': 'application/json;'},
-      credentials: 'include',
+      credentials: 'same-origin',
       body: JSON.stringify({ command: request })
     })
     .then( r => r.json() )
