@@ -44,10 +44,10 @@ def build_response(result):
 
 
 @login_manager.user_loader
-def load_user(id):
-	if not User.exists(id):
+def load_user(user_id):
+	if not User.exists(id=user_id):
 		return
-	return User.get(User.id == id)	
+	return User.get(User.id == user_id)	
 	
 
 @app.route('/prompt', methods=['GET'])
