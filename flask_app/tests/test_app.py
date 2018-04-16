@@ -84,13 +84,15 @@ def test_pipe_forwards_stdout_to_command(run_command):
 	assert result == '123'
 
 
-def test_current_user_is_none_when_not_logged_in():
-	assert current_user == None
-
+def test_current_user_is_none_when_not_logged_in(client):
+	assert not current_user.is_authenticated
+	
 
 def test_current_user_is_not_none_when_logged_in(run_command):
+	assert not current_user.is_authenticated
+
 	run_command('login root toor')
-	assert current_user != None
+	assert current_user.is_authenticated 
 	assert current_user.username == 'root'
 
 

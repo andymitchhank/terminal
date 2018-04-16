@@ -1,5 +1,7 @@
 import pytest
+from flask_login import current_user
 
+from models import User
 from commands.utils import echo, grep
 
 
@@ -29,3 +31,54 @@ def test_grep_returns_processed_stdout_when_no_files(run_command):
 	obj = {'stdout': to_grep}
 	result = grep.main(args=['1'], standalone_mode=False, obj=obj)
 	assert 2 == len(result.split('\n'))
+
+
+def test_login_returns_bad_login(run_command):
+	assert run_command('login dne ???') == 'Bad login.'
+	assert run_command('login root ???') == 'Bad login.'
+
+
+def test_login_sets_current_user(run_command):
+	assert not current_user.is_authenticated
+	
+	run_command('login root toor')
+	assert current_user.is_authenticated
+	assert current_user.username == 'root'
+
+
+def test_logout_unsets_current_user(run_command):
+	run_command('login root toor')
+	assert current_user.is_authenticated
+
+	run_command('logout')
+	assert not current_user.is_authenticated
+
+
+def test_passwd_requires_authentication(run_command):
+	assert run_command('passwd ???') == "Must be logged in to change password."
+
+
+def _get_hash():
+	return User.get(User.username == 'root').password_hash
+
+
+def test_passwd_changes_password(run_command):
+	run_command('login root toor')
+
+	prev_hash = _get_hash()
+	assert run_command('passwd test') == 'Password changed.'
+	assert prev_hash != _get_hash()
+
+	run_command('passwd toor')
+
+
+def test_passwd_same_password_different_hash(run_command):
+	run_command('login root toor')
+
+	prev_hash = _get_hash()
+	run_command('password toor')
+
+	assert prev_hash != _get_hash
+
+
+
