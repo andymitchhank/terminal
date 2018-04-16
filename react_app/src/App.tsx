@@ -105,6 +105,7 @@ class CommandPrompt extends React.Component<CommandPromptProps, CommandPromptSta
     } else {
       return (
         <Textarea 
+          autoCapitalize="none"
           onKeyPress={this.handleKeyPress}
           onKeyDown={this.handleKeyPress}
           rows={1}
