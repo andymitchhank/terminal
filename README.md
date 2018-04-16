@@ -1,3 +1,6 @@
+[![Build Status](https://api.travis-ci.org/whoopapps/terminal.svg?branch=master)](https://travis-ci.org/whoopapps/terminal)
+
+
 # Terminal
 
 A simple terminal web application built on React, Flask, and Click.
