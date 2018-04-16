@@ -25,6 +25,7 @@ serve_react_file = partial(send_from_directory, react_app_build)
 commands_list = ['clear'] + available_commands.__all__
 
 
+@app.route('/prompt', methods=['GET'])
 def get_prompt():
 	""" Build a prompt based on the current logged in user or guest """
 	username = 'guest'
@@ -47,11 +48,6 @@ def load_user(user_id):
 		return
 	return User.get(User.id == user_id)	
 	
-
-@app.route('/prompt', methods=['GET'])
-def prompt():
-	return get_prompt()
-
 
 @app.route('/run', methods=['POST'])
 def run_command():
@@ -100,13 +96,17 @@ def _proxy():
 	return Response(resp.content, resp.status_code, headers)
 
 
+def react_path_exists(path):
+	return os.path.exists(os.path.join(react_app_build, path))
+
+
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
 def serve_react(path):
 	if is_dev:
 		return _proxy()
 
-	if not path or not os.path.exists(os.path.join(react_app_build, path)):
+	if not path or not react_path_exists(path):
 		return serve_react_file('index.html')
 	return serve_react_file(path)
 
