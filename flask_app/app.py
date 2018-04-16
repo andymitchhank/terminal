@@ -1,11 +1,9 @@
 from functools import partial
-import json
 import shlex
 import os
 from urllib.parse import urlparse
 
-import click
-from flask import Flask, render_template, jsonify, Blueprint, request, send_from_directory, Response
+from flask import Flask, Response, jsonify, request, send_from_directory 
 from flask_login import LoginManager, current_user
 from flask_sockets import Sockets
 import requests
