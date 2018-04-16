@@ -48,3 +48,7 @@ def test_response_is_not_found_when_unknown_command(run_command):
 	assert result == f"Command '{unknown_command}' not found."
 
 
+def test_result_contains_command_result_when_found(run_command):
+	result = run_command('echo testing')
+	assert result == 'testing'
+
