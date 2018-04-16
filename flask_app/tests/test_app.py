@@ -1,6 +1,7 @@
 import json
 
 import pytest
+from flask_login import current_user
 
 import app as flask_app
 
@@ -51,4 +52,96 @@ def test_response_is_not_found_when_unknown_command(run_command):
 def test_result_contains_command_result_when_found(run_command):
 	result = run_command('echo testing')
 	assert result == 'testing'
+
+
+def test_ioredirection_creates_new_file(run_command):
+	test_file = 'test_ioredirection_overwrite.txt'
+	assert test_file not in run_command('ls')
+	
+	run_command(f'echo 123 > {test_file}')
+	assert test_file in run_command('ls')
+
+
+def test_ioredirection_appends_file_creates_first(run_command):
+	test_file = 'test_ioredirection_append_create'
+	assert test_file not in run_command('ls')
+
+	run_command(f'echo 123 >> {test_file}')
+	assert test_file in run_command('ls')
+
+
+def test_ioredirection_appends_file(run_command):
+	test_file = 'test_ioredirection_append'
+
+	run_command(f'echo 123 >> {test_file}')
+	run_command(f'echo 456 >> {test_file}')
+	assert test_file in run_command('ls')
+	assert '123\n456' == run_command(f'cat {test_file}')
+
+
+def test_pipe_forwards_stdout_to_command(run_command):
+	result = run_command('echo 123 | echo')
+	assert result == '123'
+
+
+def test_current_user_is_none_when_not_logged_in():
+	assert current_user == None
+
+
+def test_current_user_is_not_none_when_logged_in(run_command):
+	run_command('login root toor')
+	assert current_user != None
+	assert current_user.username == 'root'
+
+
+def test_load_user_returns_none_when_not_found():
+	assert flask_app.load_user(0) is None
+
+
+def test_load_user_is_not_none_when_found():
+	user = flask_app.load_user(1)
+	assert user is not None
+
+
+def test_help_message_returned_when_raised(run_command):
+	result = run_command('echo --help')
+	assert 'Usage:' in result
+
+
+def test_is_dev_proxy_to_react_process(monkeypatch):
+	def proxy_patch():
+		return 'patched'
+	monkeypatch.setattr(flask_app, 'is_dev', True)
+	monkeypatch.setattr(flask_app, '_proxy', proxy_patch)
+
+	assert flask_app.serve_react('') == 'patched'
+
+
+def test_not_dev_serves_from_static_path(monkeypatch):
+	def serve_patch(_):
+		return 'patched'
+	monkeypatch.setattr(flask_app, 'is_dev', False)
+	monkeypatch.setattr(flask_app, 'serve_react_file', serve_patch)
+
+	assert flask_app.serve_react('') == 'patched'
+
+
+def test_serve_react_serves_index_with_no_path(monkeypatch):
+	def serve_patch(path):
+		return path
+	monkeypatch.setattr(flask_app, 'is_dev', False)
+	monkeypatch.setattr(flask_app, 'serve_react_file', serve_patch)
+
+	assert flask_app.serve_react('') == 'index.html'
+
+
+def test_serve_react_serves_path_passed_in(monkeypatch):
+	def serve_patch(path):
+		return path
+	monkeypatch.setattr(flask_app, 'is_dev', False)
+	monkeypatch.setattr(flask_app, 'serve_react_file', serve_patch)
+	monkeypatch.setattr(flask_app, 'react_path_exists', lambda _: True)
+
+	path = '/some/path/to/file.html'
+	assert flask_app.serve_react(path) == path
 
