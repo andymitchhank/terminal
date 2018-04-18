@@ -9,7 +9,7 @@ from flask_sockets import Sockets
 import requests
 
 import commands as available_commands
-from click_utils import HelpMessage
+from click_utils import HelpMessage, AuthenticationException
 from helpers import is_dev, FileSystem as fs
 from models import FileSystemEntry, User
 
@@ -56,6 +56,8 @@ def run_command():
 				.replace('>', '| redirect_io ')
 				.split('|'))
 
+	
+
 	stdin = None
 	stdout = None
 	stderr = None
@@ -69,8 +71,8 @@ def run_command():
 			try: 
 				obj = {'stdout': stdout}
 				stdout = click_command.main(args=stdin, standalone_mode=False, obj=obj)
-			except HelpMessage as m:
-				stderr = str(m)
+			except (HelpMessage, AuthenticationException) as e:
+				stderr = str(e)
 
 		if stderr is not None:
 			return build_response(stderr)

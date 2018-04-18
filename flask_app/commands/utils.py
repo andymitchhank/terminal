@@ -57,6 +57,7 @@ def login(username, password):
 
 @click.command()
 @click_utils.help_option()
+@click_utils.authenticated()
 def logout():
 	""" Logout the current user. """
 	logout_user()
@@ -66,11 +67,9 @@ def logout():
 @click.command()
 @click_utils.help_option()
 @click.argument('new_pass')
+@click_utils.authenticated()
 def passwd(new_pass):
 	""" Update the current logged in user password. """
-	if not current_user.is_authenticated:
-		return "Must be logged in to change password."
-
 	current_user.password_hash = generate_password_hash(new_pass)
 	current_user.save()
 	return "Password changed."

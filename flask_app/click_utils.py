@@ -1,8 +1,12 @@
 import click
-
+from flask_login import current_user
 
 class HelpMessage(Exception):
 	pass
+
+
+class AuthenticationException(Exception):
+    pass
 
 
 def print_help(ctx, param, value):
@@ -21,4 +25,18 @@ def help_option(*param_decls, **attrs):
         return click.decorators.option(*(param_decls or ('--help','-h')), **attrs)(f)
     return decorator
 
+
+def authenticated(root=False):
+    """ Boy that was fun """
+    def decorator(f):
+        def inner(*args, **kwargs):  
+            if not current_user.is_authenticated:
+                raise AuthenticationException('Must be logged in.')
+
+            if root and not current_user.username == 'root':
+                raise AuthenticationException('Must be root.')
+                
+            return f(*args, **kwargs)
+        return inner
+    return decorator
 

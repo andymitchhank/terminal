@@ -86,6 +86,7 @@ def _redirect_io(path, append, stdout):
 @click_utils.help_option()
 @click.argument('path')
 @click.pass_context
+@click_utils.authenticated()
 def redirect_io(ctx, path):
 	""" A special command to handle > """
 	_redirect_io(path, False, ctx.obj['stdout'])
@@ -95,6 +96,7 @@ def redirect_io(ctx, path):
 @click_utils.help_option()
 @click.argument('path')
 @click.pass_context
+@click_utils.authenticated()
 def redirect_io_append(ctx, path):
 	""" A special command to handle >> """
 	_redirect_io(path, True, ctx.obj['stdout'])
