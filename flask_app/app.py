@@ -49,6 +49,18 @@ def load_user(user_id):
 	return User.get(User.id == user_id)	
 	
 
+@app.route('/save', methods=['POST']) 
+def save_file():
+	data = request.get_json()
+	path = data['path']
+	content = data['content']
+
+	f = FileSystemEntry.find_file(path)
+	if f: 
+		f.content = content
+		f.save()
+
+
 @app.route('/run', methods=['POST'])
 def run_command():
 	commands = (request.get_json()["command"]
