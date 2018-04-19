@@ -55,7 +55,7 @@ def test_logout_unsets_current_user(run_command):
 
 
 def test_passwd_requires_authentication(run_command):
-	assert run_command('passwd ???') == "Must be logged in to change password."
+	assert run_command('passwd ???') == "Must be logged in to run command 'passwd'."
 
 
 def _get_hash():
