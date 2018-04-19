@@ -264,15 +264,9 @@ class App extends React.Component<AppProps, AppState> {
   }
 
   handleEditOnSave = () => {
-    fetch('/save', {
-      method: 'POST',
-      headers: {'content-type': 'application/json;'},
-      credentials: 'same-origin',
-      body: JSON.stringify({ path: this.state.editorPath, content: this.state.editorContent })      
-    })
-    .catch( e => {
-      alert(e);
-    });
+    const path = this.state.editorPath;
+    const content = this.state.editorContent;
+    this.runCommand(`save "${ path }" "${ content }"`);
   }
 
   render() {

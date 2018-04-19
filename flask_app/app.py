@@ -53,28 +53,12 @@ def load_user(user_id):
 	return User.get(User.id == user_id)	
 	
 
-@authenticated()
-def _save(path, content):
-	f = FileSystemEntry.find_file(path)
-	if f: 
-		f.content = content
-		f.save()
-
-
-@app.route('/save', methods=['POST']) 
-def save_file():
-	data = request.get_json()
-	_save(data['path'], data['content'])
-
-
 @app.route('/run', methods=['POST'])
 def run_command():
 	commands = (request.get_json()["command"]
 				.replace('>>', '| redirect_io_append ')
 				.replace('>', '| redirect_io ')
 				.split('|'))
-
-	
 
 	stdin = None
 	stdout = None

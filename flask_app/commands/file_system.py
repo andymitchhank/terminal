@@ -8,19 +8,51 @@ from models import FileSystemEntry
 from helpers import FileSystem as fs
 
 
-__all__ = ['pwd', 'cd', 'ls', 'cat', 'redirect_io', 'redirect_io_append', 'edit']
+__all__ = ['pwd', 'cd', 'ls', 'cat', 'redirect_io', 'redirect_io_append', 'edit', 'save']
+
+@click.command()
+@click_utils.help_option()
+@click.argument('path')
+@click.argument('content')
+@click_utils.authenticated()
+def save(path, content):
+	""" Save a file given a path and content. Does not create a new file. """
+	path = fs.get_absolute_path(path)
+	f = FileSystemEntry.find_file(path)
+	if f: 
+		f.content = content
+		f.save()
+		return {
+			'context': 'terminal',
+			'result': f'{path} updated.'
+		}
+
+	path, _ = os.path.split(path)
+	return {
+		'context': 'terminal',
+		'result': f'{path} does not exist.'
+	}
+
 
 
 @click.command()
 @click_utils.help_option()
 @click.argument('path')
+@click_utils.authenticated()
 def edit(path):
+	""" Edit a file given it's path. Will create a new file if the directory exists."""
 	path = fs.get_absolute_path(path)
-	return {
-		'context': 'editor', 
-		'editorContent': FileSystemEntry.find_file(path).content,
-		'editorPath': path
-	}
+	f = FileSystemEntry.find_file(path, True)
+	if f: 
+		return {
+			'context': 'editor', 
+			'editorContent': f.content,
+			'editorPath': path
+		}
+
+	path, _ = os.path.split(path)
+	return f'{path} does not exist.'
+
 
 
 @click.command()
