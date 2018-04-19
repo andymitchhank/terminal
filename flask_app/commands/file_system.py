@@ -81,30 +81,13 @@ def edit(path):
 
 @click.command()
 @click_utils.help_option()
-@click.argument('dir_name')
-def cd(dir_name):
+@click.argument('path')
+def cd(path):
 	""" Change directory to the provided directory name. Use .. or move down one directory at a time."""
-	working = fs.working()
-	working_entry = fs.working_entry()
-
-	if dir_name == '.':
-		return
-
-	if dir_name == "..":
-		parent = working_entry.parent
-		if parent:
-			fs.set_working(parent.id)
-		return
-
-	child = FileSystemEntry.get_child(working, dir_name)
-
-	if not child: 
-		return f'Directory "{dir_name}" not found'
-
-	if not child.is_directory:
-		return f'"{child.name}" is not a directory'
-		
-	fs.set_working(child.id)
+	path = fs.get_absolute_path(path)
+	d = FileSystemEntry.find_dir(path)
+	if d:
+		fs.set_working(d.id)
 
 
 @click.command()
