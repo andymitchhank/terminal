@@ -98,8 +98,8 @@ class FileSystemEntry(BaseModel):
 
 		if create:
 			d = FileSystemEntry.find_dir(dirs)
-			if not d: 
-				raise Exception
+			if not d:
+				return
 
 			return FileSystemEntry.create(
 				parent=d.id, 
