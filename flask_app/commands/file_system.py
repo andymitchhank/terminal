@@ -88,6 +88,9 @@ def cd(path):
 	d = FileSystemEntry.find_dir(path)
 	if d:
 		fs.set_working(d.id)
+		return
+
+	return f'{path} does not exists or is not a directory.'
 
 
 @click.command()
