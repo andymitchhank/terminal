@@ -55,6 +55,8 @@ def test_result_contains_command_result_when_found(run_command):
 
 
 def test_ioredirection_creates_new_file(run_command):
+	run_command('login root toor')
+
 	test_file = 'test_ioredirection_overwrite.txt'
 	assert test_file not in run_command('ls')
 	
@@ -63,6 +65,8 @@ def test_ioredirection_creates_new_file(run_command):
 
 
 def test_ioredirection_appends_file_creates_first(run_command):
+	run_command('login root toor')
+
 	test_file = 'test_ioredirection_append_create'
 	assert test_file not in run_command('ls')
 
@@ -71,6 +75,8 @@ def test_ioredirection_appends_file_creates_first(run_command):
 
 
 def test_ioredirection_appends_file(run_command):
+	run_command('login root toor')
+	
 	test_file = 'test_ioredirection_append'
 
 	run_command(f'echo 123 >> {test_file}')
