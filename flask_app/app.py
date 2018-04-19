@@ -9,7 +9,7 @@ from flask_sockets import Sockets
 import requests
 
 import commands as available_commands
-from click_utils import HelpMessage, AuthenticationException
+from click_utils import HelpMessage, AuthenticationException, authenticated
 from helpers import is_dev, FileSystem as fs
 from models import FileSystemEntry, User
 
@@ -53,16 +53,18 @@ def load_user(user_id):
 	return User.get(User.id == user_id)	
 	
 
-@app.route('/save', methods=['POST']) 
-def save_file():
-	data = request.get_json()
-	path = data['path']
-	content = data['content']
-
+@authenticated()
+def _save(path, content):
 	f = FileSystemEntry.find_file(path)
 	if f: 
 		f.content = content
 		f.save()
+
+
+@app.route('/save', methods=['POST']) 
+def save_file():
+	data = request.get_json()
+	_save(data['path'], data['content'])
 
 
 @app.route('/run', methods=['POST'])
