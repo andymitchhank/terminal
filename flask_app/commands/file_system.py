@@ -10,6 +10,7 @@ from helpers import FileSystem as fs
 
 __all__ = ['pwd', 'cd', 'ls', 'cat', 'redirect_io', 'redirect_io_append', 'edit', 'save']
 
+
 @click.command()
 @click_utils.help_option()
 @click.argument('path')
@@ -34,7 +35,6 @@ def save(path, content):
 	}
 
 
-
 @click.command()
 @click_utils.help_option()
 @click.argument('path')
@@ -52,7 +52,6 @@ def edit(path):
 
 	path, _ = os.path.split(path)
 	return f'{path} does not exist.'
-
 
 
 @click.command()
