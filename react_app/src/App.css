@@ -22,12 +22,19 @@ body {
   padding: 2px;
 }
 
-#brace-editor {
+.ReactCodeMirror {
   height: calc(100% - 3em) !important;
   width: 100% !important;
   border: 1px black solid;
 }
 
+.CodeMirror {
+  height: 100% !important;
+}
+
+#editor {
+  height: 100%;
+}
 .actions {
   height: 2em;
 }
