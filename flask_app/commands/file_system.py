@@ -8,7 +8,24 @@ from models import FileSystemEntry
 from helpers import FileSystem as fs
 
 
-__all__ = ['pwd', 'cd', 'ls', 'cat', 'redirect_io', 'redirect_io_append', 'edit', 'save']
+__all__ = ['pwd', 'cd', 'ls', 'cat', 'redirect_io', 'redirect_io_append', 'edit', 'save', 'touch']
+
+
+@click.command()
+@click_utils.help_option()
+@click.argument('path')
+@click_utils.authenticated()
+def touch(path):
+	""" Create a new file at the given path if the directory exists. If file exists, empties the file. """
+	path = fs.get_absolute_path(path)
+	f = FileSystemEntry.find_file(path, True)
+	if f: 
+		f.content = ''
+		f.save()
+		return f'Touched {path}'
+
+	path, _ = os.path.split(path)
+	return f'{path} does not exist.'
 
 
 @click.command()
@@ -23,16 +40,10 @@ def save(path, content):
 	if f: 
 		f.content = content
 		f.save()
-		return {
-			'context': 'terminal',
-			'result': f'{path} updated.'
-		}
+		return f'{path} updated.'
 
 	path, _ = os.path.split(path)
-	return {
-		'context': 'terminal',
-		'result': f'{path} does not exist.'
-	}
+	return f'{path} does not exist.'
 
 
 @click.command()
