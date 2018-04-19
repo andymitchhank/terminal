@@ -8,7 +8,21 @@ from models import FileSystemEntry
 from helpers import FileSystem as fs
 
 
-__all__ = ['pwd', 'cd', 'ls', 'cat', 'redirect_io', 'redirect_io_append', 'edit', 'save', 'touch']
+@click.command()
+@click_utils.help_option()
+@click.argument('path')
+@click_utils.authenticated()
+def mkdir(path):
+	""" Make a directory, if the parent directory exists. """
+	path = fs.get_absolute_path(path)
+	parent_path, d = os.path.split(path)
+
+	parent = FileSystemEntry.find_dir(parent_path)
+	if parent: 
+		entry = FileSystemEntry.create(name=d, parent=parent, depth=parent.depth+1, is_directory=True)
+		return f'{path} created.'
+
+	return f'{parent_path} does not exist.'
 
 
 @click.command()
