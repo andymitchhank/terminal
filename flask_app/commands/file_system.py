@@ -30,16 +30,10 @@ def mkdir(path):
 @click.argument('path')
 @click_utils.authenticated()
 def touch(path):
-	""" Create a new file at the given path if the directory exists. If file exists, empties the file. """
+	""" Create a file, if it doesn't exist, at the given path if the directory exists."""
 	path = fs.get_absolute_path(path)
 	f = FileSystemEntry.find_file(path, True)
-	if f: 
-		f.content = ''
-		f.save()
-		return f'Touched {path}'
-
-	path, _ = os.path.split(path)
-	return f'{path} does not exist.'
+	return f'Touched {path}' if f else f'{os.path.split(path)[0]} does not exist.'
 
 
 @click.command()
