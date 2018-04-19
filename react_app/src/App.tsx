@@ -1,11 +1,9 @@
 import * as React from 'react';
-import * as brace from 'brace';
-import AceEditor from 'react-ace';
+import * as CodeMirror from 'react-codemirror';
 import Textarea from 'react-textarea-autosize';
 import './App.css';
 
-import 'brace/mode/markdown';
-import 'brace/theme/github';
+require('codemirror/lib/codemirror.css');
 
 interface AppProps { }
 
@@ -245,6 +243,22 @@ class App extends React.Component<AppProps, AppState> {
     return listItems;
   }
 
+  renderEditor = () => {
+    return (
+      <div id="editor">
+        <div className="actions">
+          <button onClick={this.handleEditOnExit}>Exit</button>
+          <button onClick={this.handleEditOnSave}>Save</button>
+        </div>
+        <CodeMirror 
+          value={this.state.editorContent}
+          onChange={(v) => this.setState({editorContent: v})}
+          options={{lineNumbers: true}}
+        />
+      </div>
+    );
+  }
+
   handleEditOnExit = () => {
     this.setState({context: 'terminal'});
   }
@@ -274,17 +288,7 @@ class App extends React.Component<AppProps, AppState> {
       case 'editor':
         return (
           <div className="App">
-            <div className="actions">
-              <button onClick={this.handleEditOnExit}>Exit</button>
-              <button onClick={this.handleEditOnSave}>Save</button>
-            </div>
-            <AceEditor 
-              mode="markdown"
-              theme="github"
-              editorProps={{$blockScrolling: true}}
-              value={this.state.editorContent}
-              onChange={(v) => this.setState({editorContent: v})}
-            />
+            {this.renderEditor()}
           </div>
         );
 
