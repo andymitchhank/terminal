@@ -8,7 +8,19 @@ from models import FileSystemEntry
 from helpers import FileSystem as fs
 
 
-__all__ = ['pwd', 'cd', 'ls', 'cat', 'redirect_io', 'redirect_io_append']
+__all__ = ['pwd', 'cd', 'ls', 'cat', 'redirect_io', 'redirect_io_append', 'edit']
+
+
+@click.command()
+@click_utils.help_option()
+@click.argument('path')
+def edit(path):
+	path = fs.get_absolute_path(path)
+	return {
+		'context': 'editor', 
+		'editorContent': FileSystemEntry.find_file(path).content,
+		'editorPath': path
+	}
 
 
 @click.command()
