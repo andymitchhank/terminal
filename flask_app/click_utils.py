@@ -31,10 +31,10 @@ def authenticated(root=False):
     def decorator(f):
         def inner(*args, **kwargs):  
             if not current_user.is_authenticated:
-                raise AuthenticationException('Must be logged in.')
+                raise AuthenticationException(f"Must be logged in to run command '{f.__name__}'.")
 
             if root and not current_user.username == 'root':
-                raise AuthenticationException('Must be root.')
+                raise AuthenticationException(f"Must be root to run command '{f.__name__}'.")
                 
             return f(*args, **kwargs)
         return inner
