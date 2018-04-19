@@ -28,25 +28,10 @@ class FileSystem(object):
 		session['working_directory_id'] = id
 
 	def get_absolute_path(path):
-		pieces = path.split('/')
-		if pieces[0] == '/':#start from root
-			return('/' + build_absolute_path(pieces))
-		else:
-			return('/' + build_absolute_path([working_path().split('/')] + pieces))
+		if not path: 
+			return '/'
 
-	def build_absolute_path(pieces):
-		absolute_path = []
-		for piece in pieces:
-			if piece == '.':
-				continue
-			elif piece == '..':
-				if len(absolute_path) > 0:
-					absolute_path = absolute_path[:-1]
-			else:
-				absolute_path += [piece]
-		return '/'.join(absolute_path)
+		if path[0] != '/':
+			path = os.path.join(FileSystem.working_path(), path)
 
-
-
-		
-
+		return os.path.abspath(path)
