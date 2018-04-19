@@ -1,3 +1,5 @@
+from functools import wraps
+
 import click
 from flask_login import current_user
 
@@ -29,6 +31,7 @@ def help_option(*param_decls, **attrs):
 def authenticated(root=False):
     """ Boy that was fun """
     def decorator(f):
+        @wraps(f)
         def inner(*args, **kwargs):  
             if not current_user.is_authenticated:
                 raise AuthenticationException(f"Must be logged in to run command '{f.__name__}'.")
