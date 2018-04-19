@@ -3,11 +3,33 @@
   font-size: 14px;
 }
 
+html {
+  height: 100%;
+}
+
+body {
+  height: 100%;
+}
+
+#root {
+  height: 100%;
+}
 
 .App {
+  height: 100%;
   text-align: left;
   font-size: 1em;
   padding: 2px;
+}
+
+#brace-editor {
+  height: calc(100% - 3em) !important;
+  width: 100% !important;
+  border: 1px black solid;
+}
+
+.actions {
+  height: 2em;
 }
 
 ul {
