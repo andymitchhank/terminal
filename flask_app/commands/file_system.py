@@ -8,35 +8,83 @@ from models import FileSystemEntry
 from helpers import FileSystem as fs
 
 
-__all__ = ['pwd', 'cd', 'ls', 'cat', 'redirect_io', 'redirect_io_append']
+@click.command()
+@click_utils.help_option()
+@click.argument('path')
+@click_utils.authenticated()
+def mkdir(path):
+	""" Make a directory, if the parent directory exists. """
+	path = fs.get_absolute_path(path)
+	parent_path, d = os.path.split(path)
+
+	parent = FileSystemEntry.find_dir(parent_path)
+	if parent: 
+		entry = FileSystemEntry.create(name=d, parent=parent, depth=parent.depth+1, is_directory=True)
+		return f'{path} created.'
+
+	return f'{parent_path} does not exist.'
 
 
 @click.command()
 @click_utils.help_option()
-@click.argument('dir_name')
-def cd(dir_name):
+@click.argument('path')
+@click_utils.authenticated()
+def touch(path):
+	""" Create a file, if it doesn't exist, at the given path if the directory exists."""
+	path = fs.get_absolute_path(path)
+	f = FileSystemEntry.find_file(path, True)
+	return f'Touched {path}' if f else f'{os.path.split(path)[0]} does not exist.'
+
+
+@click.command()
+@click_utils.help_option()
+@click.argument('path')
+@click.argument('content')
+@click_utils.authenticated()
+def save(path, content):
+	""" Save a file given a path and content. Does not create a new file. """
+	path = fs.get_absolute_path(path)
+	f = FileSystemEntry.find_file(path)
+	if f: 
+		f.content = content
+		f.save()
+		return f'{path} updated.'
+
+	path, _ = os.path.split(path)
+	return f'{path} does not exist.'
+
+
+@click.command()
+@click_utils.help_option()
+@click.argument('path')
+@click_utils.authenticated()
+def edit(path):
+	""" Edit a file given it's path. Will create a new file if the directory exists."""
+	path = fs.get_absolute_path(path)
+	f = FileSystemEntry.find_file(path, True)
+	if f: 
+		return {
+			'context': 'editor', 
+			'editorContent': f.content,
+			'editorPath': path
+		}
+
+	path, _ = os.path.split(path)
+	return f'{path} does not exist.'
+
+
+@click.command()
+@click_utils.help_option()
+@click.argument('path')
+def cd(path):
 	""" Change directory to the provided directory name. Use .. or move down one directory at a time."""
-	working = fs.working()
-	working_entry = fs.working_entry()
-
-	if dir_name == '.':
+	path = fs.get_absolute_path(path)
+	d = FileSystemEntry.find_dir(path)
+	if d:
+		fs.set_working(d.id)
 		return
 
-	if dir_name == "..":
-		parent = working_entry.parent
-		if parent:
-			fs.set_working(parent.id)
-		return
-
-	child = FileSystemEntry.get_child(working, dir_name)
-
-	if not child: 
-		return f'Directory "{dir_name}" not found'
-
-	if not child.is_directory:
-		return f'"{child.name}" is not a directory'
-		
-	fs.set_working(child.id)
+	return f'{path} does not exists or is not a directory.'
 
 
 @click.command()

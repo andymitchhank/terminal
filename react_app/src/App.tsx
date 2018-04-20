@@ -1,13 +1,19 @@
 import * as React from 'react';
+import * as CodeMirror from 'react-codemirror';
 import Textarea from 'react-textarea-autosize';
 import './App.css';
+
+require('codemirror/lib/codemirror.css');
 
 interface AppProps { }
 
 interface AppState {
+  context: string;
   prompts: Array<string>;
   requests: Array<string>;
   results: Array<string>;
+  editorContent: string;
+  editorPath: string;
 }
 
 interface CommandPromptProps {
@@ -27,8 +33,11 @@ interface CommandResultProps {
 interface CommandResultState { } 
 
 interface Response {
+  context: string;
   nextPrompt: string;
   result: string;
+  editorContent: string;
+  editorPath: string;
 }
 
 class CommandResult extends React.Component<CommandResultProps, CommandResultState> {
@@ -135,9 +144,12 @@ class App extends React.Component<AppProps, AppState> {
   constructor(props: AppProps) {
     super(props);
     this.state = {
+      context: 'terminal',
+      editorContent: '',
       prompts: [],
       requests: [],
-      results: []
+      results: [],
+      editorPath: ''
     };
     this.getInitialPrompt();
   }
@@ -173,7 +185,14 @@ class App extends React.Component<AppProps, AppState> {
       requests.push(request);
       prompts.push(response.nextPrompt);
       results.push(response.result);
-      this.setState({prompts: prompts, requests: requests, results: results});
+      this.setState({
+        context: response.context, 
+        prompts: prompts, 
+        requests: requests, 
+        results: results, 
+        editorContent: response.editorContent,
+        editorPath: response.editorPath
+      });
     })
     .catch( e => {
       requests.push(request);
@@ -224,12 +243,54 @@ class App extends React.Component<AppProps, AppState> {
     return listItems;
   }
 
-  render() {
+  renderEditor = () => {
     return (
-      <div className="App">
-        <ul>{this.renderCommands()}</ul>
+      <div id="editor">
+        <div className="actions">
+          <button onClick={this.handleEditOnExit}>Exit</button>
+          <button onClick={this.handleEditOnSave}>Save</button>
+        </div>
+        <CodeMirror 
+          value={this.state.editorContent}
+          onChange={(v) => this.setState({editorContent: v})}
+          options={{lineNumbers: true}}
+        />
       </div>
     );
+  }
+
+  handleEditOnExit = () => {
+    this.setState({context: 'terminal'});
+  }
+
+  handleEditOnSave = () => {
+    const path = this.state.editorPath;
+    const content = this.state.editorContent;
+    this.runCommand(`save "${ path }" "${ content }"`);
+  }
+
+  render() {
+
+    switch (this.state.context) {
+      case 'terminal':
+        return (
+          <div className="App">
+            <ul>{this.renderCommands()}</ul>
+          </div>
+        );
+
+      case 'editor':
+        return (
+          <div className="App">
+            {this.renderEditor()}
+          </div>
+        );
+
+      default:
+        return (
+          <div className="App" />
+        );
+    }
   }
 }
 

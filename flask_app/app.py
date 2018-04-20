@@ -9,7 +9,7 @@ from flask_sockets import Sockets
 import requests
 
 import commands as available_commands
-from click_utils import HelpMessage, AuthenticationException
+from click_utils import HelpMessage, AuthenticationException, authenticated
 from helpers import is_dev, FileSystem as fs
 from models import FileSystemEntry, User
 
@@ -34,12 +34,16 @@ def get_prompt():
 	return f'{username}@{request.host}:{fs.working_dir()} $ '
 
 
-def build_response(result):
+def build_response(result='', context='terminal', editorContent='', editorPath=''):
 	""" Build a response that includes the given result and next prompt """
-	return jsonify({
+	res = jsonify({
 			'result': result,
-			'nextPrompt': get_prompt()
+			'nextPrompt': get_prompt(),
+			'context': context,
+			'editorContent': editorContent,
+			'editorPath': editorPath
 		})
+	return res
 
 
 @login_manager.user_loader
@@ -55,8 +59,6 @@ def run_command():
 				.replace('>>', '| redirect_io_append ')
 				.replace('>', '| redirect_io ')
 				.split('|'))
-
-	
 
 	stdin = None
 	stdout = None
@@ -77,7 +79,9 @@ def run_command():
 		if stderr is not None:
 			return build_response(stderr)
 
-		
+	if isinstance(stdout, dict):
+		return build_response(**stdout)
+
 	return build_response(stdout if stdout else '')
 
 
