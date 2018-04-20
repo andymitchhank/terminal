@@ -121,17 +121,23 @@ class FileSystemEntry(BaseModel):
 		flask.session['working_directory_id'] = entry.id
 
 
-models = [User, FileSystemEntry]
+def create_tables():
+	models = [User, FileSystemEntry]
 
-for model in models: 
-	model.drop_table(fail_silently=True)
-	model.create_table(fail_silently=True)
+	for model in models: 
+		model.create_table(fail_silently=True)
 
-if not User.select().where(User.username == 'root').exists():
-	User.create(username='root', password_hash=generate_password_hash('toor'))
 
-if not FileSystemEntry.select().exists():
-	FileSystemEntry.create(name='', depth=0, is_directory=True)
+def create_default_data():
+	if not User.select().where(User.username == 'root').exists():
+		User.create(username='root', password_hash=generate_password_hash('toor'))
+
+	if not FileSystemEntry.select().exists():
+		FileSystemEntry.create(name='', depth=0, is_directory=True)
+
+
+create_tables()
+create_default_data()
 
 
 def create_test_data():
