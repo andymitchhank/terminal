@@ -2,7 +2,7 @@ import pytest
 from flask_login import current_user
 
 from models import User
-from commands.utils import echo, grep
+from commands.utility import echo, grep
 
 
 def test_echo_returns_passed_in(run_command):

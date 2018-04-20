@@ -1,5 +1,6 @@
 import os
 
+import flask
 from flask_login import UserMixin
 from peewee import *
 from werkzeug.security import generate_password_hash
@@ -40,15 +41,15 @@ class FileSystemEntry(BaseModel):
 	content = CharField(null=True)
 	extension = CharField(null=True)
 
-	def get_full_path(id):
-		entry = FileSystemEntry.get(FileSystemEntry.id == id)
+	def get_full_path(self):
+		entry = self
 		parts = []
 		while entry: 
 			parts.append(entry.name)
 			entry = entry.parent
 
-		return '/'.join(reversed(parts))
-
+		path = '/'.join(reversed(parts))
+		return path if path else '/'
 
 	def get_by_id(id):
 		return FileSystemEntry.get(FileSystemEntry.id == id)
@@ -63,7 +64,7 @@ class FileSystemEntry(BaseModel):
 			return query.get()
 
 	def find_dir(path):
-		if path[-1] == '/':
+		if path[-1] == '/' and path != '/':
 			path = path[:-1]
 
 		directories = path.split('/')
@@ -80,7 +81,6 @@ class FileSystemEntry(BaseModel):
 				return d
 
 		return None
-
 
 	def find_file(path, create=False):
 		dirs, file_name = os.path.split(path)
@@ -106,6 +106,19 @@ class FileSystemEntry(BaseModel):
 				name=file_name, 
 				depth=d.depth+1, 
 				is_directory=False)	
+
+	@staticmethod
+	def get_working():
+		try: 
+			entry = FileSystemEntry.get_by_id(flask.session.get('working_directory_id', 1))
+		except DoesNotExist:
+			entry = FileSystemEntry.get_by_id(1)
+
+		return entry
+
+	@staticmethod
+	def set_working(entry):
+		flask.session['working_directory_id'] = entry.id
 
 
 models = [User, FileSystemEntry]

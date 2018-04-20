@@ -1,7 +1,7 @@
 import peewee
 import pytest
 
-from models import *
+from models import User, FileSystemEntry as fse
 
 
 def test_user_exists_returns_false_for_unknown_user():
@@ -19,40 +19,40 @@ def test_user_exists_returns_none_with_no_params():
 
 
 def test_get_full_path_for_root_is_empty():
-	assert FileSystemEntry.get_full_path(1) == ''
+	assert fse.get_by_id(1).get_full_path() == '/'
 
 
 def test_get_full_path_for_first():
-	assert FileSystemEntry.get_full_path(2) == '/first'
+	assert fse.get_by_id(2).get_full_path() == '/first'
 
 
 def test_get_full_path_for_second():
-	assert FileSystemEntry.get_full_path(3) == '/first/second'
+	assert fse.get_by_id(3).get_full_path() == '/first/second'
 
 
 def test_get_full_path_for_second_file():
-	assert FileSystemEntry.get_full_path(5) == '/first/second/second_file'
+	assert fse.get_by_id(5).get_full_path() == '/first/second/second_file'
 
 
 def test_find_file_for_second_file():
 	path = '/first/second/second_file'
-	f = FileSystemEntry.find_file(path)
+	f = fse.find_file(path)
 	assert f.get_full_path() == path
 	assert f.name == 'second_file'
 	assert not f.is_directory
 
 
 def test_find_file_for_directory_returns_none():
-	assert FileSystemEntry.find_file('/first') is None
+	assert fse.find_file('/first') is None
 
 
 def test_find_file_for_non_existant_file_returns_none():
-	assert FileSystemEntry.find_file('/dne') is None
+	assert fse.find_file('/dne') is None
 
 
 def test_find_directory_for_first():
 	path = '/first'
-	d = FileSystemEntry.find_dir(path)
+	d = fse.find_dir(path)
 	assert d.get_full_path() == path
 	assert d.is_directory
 	assert d.name == 'first'
@@ -60,47 +60,47 @@ def test_find_directory_for_first():
 
 def test_find_directory_for_second():
 	path = '/first/second'
-	d = FileSystemEntry.find_dir(path)
+	d = fse.find_dir(path)
 	assert d.get_full_path() == path
 	assert d.is_directory
 	assert d.name == 'second'
 
 
 def test_find_directory_for_file_returns_none():
-	assert FileSystemEntry.find_dir('/first/second/second_file') is None
+	assert fse.find_dir('/first/second/second_file') is None
 
 
 def test_find_directory_for_non_existant_directory_returns_none():
-	assert FileSystemEntry.find_dir('/dne') is None
+	assert fse.find_dir('/dne') is None
 
 
 def test_find_directory_for_root():
 	path = '/'
-	d = FileSystemEntry.find_dir(path)
-	assert d.get_full_path() == ''
+	d = fse.find_dir(path)
+	assert d.get_full_path() == '/'
 	assert d.name == ''
 	assert d.id == 1
 	assert d.is_directory
 
 
 def test_get_child_directory_when_exists():
-	child = FileSystemEntry.get_child(1, 'first')
+	child = fse.get_child(1, 'first')
 	assert child.get_full_path() == '/first'
 
 
 def test_get_child_file_when_exists():
-	child = FileSystemEntry.get_child(3, 'second_file')
+	child = fse.get_child(3, 'second_file')
 	assert child.get_full_path() == '/first/second/second_file'
 
 
 def test_get_child_returns_none_when_dne():
-	assert FileSystemEntry.get_child(1, 'dne') is None
+	assert fse.get_child(1, 'dne') is None
 
 
 def test_get_entry_by_id_returns_when_valid():
-	assert FileSystemEntry.get_by_id(1) is not None
+	assert fse.get_by_id(1) is not None
 
 
 def test_get_entry_by_id_fails_when_not_vaild():
 	with pytest.raises(peewee.DoesNotExist):
-		assert FileSystemEntry.get_by_id(0)
+		assert fse.get_by_id(0)

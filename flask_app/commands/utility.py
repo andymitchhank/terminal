@@ -4,14 +4,12 @@ import click
 from flask_login import current_user, login_user, logout_user
 from werkzeug.security import check_password_hash, generate_password_hash
 
-import click_utils
+from utils import help_option, authenticated, print_help
 from models import User
-
-__all__ = ['echo', 'help', 'login', 'logout', 'passwd', 'grep']
 
 
 @click.command()
-@click_utils.help_option()
+@help_option()
 @click.pass_context
 def help(ctx):
 	""" Help text for the application. Type 'help' to view this message.
@@ -21,11 +19,11 @@ def help(ctx):
 
 		Use '[command] --help' for more information on a specific command. 
 	"""
-	click_utils.print_help(ctx, None, True)
+	print_help(ctx, None, True)
 
 
 @click.command()
-@click_utils.help_option()
+@help_option()
 @click.option('-n', '--newline', is_flag=True, default=False)
 @click.argument('text', nargs=-1)
 @click.pass_context
@@ -39,7 +37,7 @@ def echo(ctx, text, newline):
 
 
 @click.command()
-@click_utils.help_option()
+@help_option()
 @click.argument('username')
 @click.argument('password')
 def login(username, password):
@@ -56,8 +54,8 @@ def login(username, password):
 
 
 @click.command()
-@click_utils.help_option()
-@click_utils.authenticated()
+@help_option()
+@authenticated()
 def logout():
 	""" Logout the current user. """
 	logout_user()
@@ -65,9 +63,9 @@ def logout():
 
 
 @click.command()
-@click_utils.help_option()
+@help_option()
 @click.argument('new_pass')
-@click_utils.authenticated()
+@authenticated()
 def passwd(new_pass):
 	""" Update the current logged in user password. """
 	current_user.password_hash = generate_password_hash(new_pass)
@@ -80,7 +78,7 @@ def _grep(pattern, text):
 
 
 @click.command()
-@click_utils.help_option()
+@help_option()
 @click.argument('pattern')
 @click.argument('filenames', nargs=-1)
 @click.pass_context

@@ -1,5 +1,4 @@
 from functools import partial
-import shlex
 import os
 from urllib.parse import urlparse
 
@@ -8,10 +7,9 @@ from flask_login import LoginManager, current_user
 from flask_sockets import Sockets
 import requests
 
-import commands as available_commands
-from click_utils import HelpMessage, AuthenticationException, authenticated
-from helpers import is_dev, FileSystem as fs
-from models import FileSystemEntry, User
+import commands
+from models import FileSystemEntry as fse, User
+from utils import is_dev
 
 app = Flask(__name__, static_folder=None)
 sockets = Sockets(app)
@@ -22,16 +20,15 @@ react_app_build = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(_
 serve_react_file = partial(send_from_directory, react_app_build)
 
 
-commands_list = ['clear'] + available_commands.__all__
-
-
 @app.route('/prompt', methods=['GET'])
 def get_prompt():
 	""" Build a prompt based on the current logged in user or guest """
 	username = 'guest'
 	if current_user.is_authenticated:
 		username = current_user.username
-	return f'{username}@{request.host}:{fs.working_dir()} $ '
+	working = fse.get_working().name
+	working = working if working else '/'
+	return f'{username}@{request.host}:{working} $ '
 
 
 def build_response(result='', context='terminal', editorContent='', editorPath=''):
@@ -55,34 +52,12 @@ def load_user(user_id):
 
 @app.route('/run', methods=['POST'])
 def run_command():
-	commands = (request.get_json()["command"]
-				.replace('>>', '| redirect_io_append ')
-				.replace('>', '| redirect_io ')
-				.split('|'))
+	rv = commands.run(request.get_json()["command"])
 
-	stdin = None
-	stdout = None
-	stderr = None
+	if isinstance(rv, dict):
+		return build_response(**rv)
 
-	for command, *stdin in (shlex.split(c) for c in commands):
-
-		if command not in commands_list:
-			stderr = f"Command '{command}' not found."
-		else:
-			click_command = getattr(available_commands, command)
-			try: 
-				obj = {'stdout': stdout}
-				stdout = click_command.main(args=stdin, standalone_mode=False, obj=obj)
-			except (HelpMessage, AuthenticationException) as e:
-				stderr = str(e)
-
-		if stderr is not None:
-			return build_response(stderr)
-
-	if isinstance(stdout, dict):
-		return build_response(**stdout)
-
-	return build_response(stdout if stdout else '')
+	return build_response(rv if rv else '')
 
 
 def _proxy():

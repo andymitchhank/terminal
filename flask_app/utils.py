@@ -1,19 +1,33 @@
 from functools import wraps
+import os
 
 import click
+from flask import session
 from flask_login import current_user
 
-class HelpMessage(Exception):
+from models import FileSystemEntry as fse
+
+
+is_dev = os.environ.get('IS_DEV', '') == '1' 
+
+
+def abspath(path, working):
+	if not path: 
+		return '/'
+
+	if path[0] != '/':
+		path = os.path.join(working, path)
+
+	return os.path.abspath(path)
+
+
+class CommandException(Exception):
 	pass
-
-
-class AuthenticationException(Exception):
-    pass
 
 
 def print_help(ctx, param, value):
 	if value:
-		raise HelpMessage(ctx.get_help())
+		raise CommandException(ctx.get_help())
 
 
 def help_option(*param_decls, **attrs):
@@ -34,10 +48,10 @@ def authenticated(root=False):
         @wraps(f)
         def inner(*args, **kwargs):  
             if not current_user.is_authenticated:
-                raise AuthenticationException(f"Must be logged in to run command '{f.__name__}'.")
+                raise CommandException(f"Must be logged in to run command '{f.__name__}'.")
 
             if root and not current_user.username == 'root':
-                raise AuthenticationException(f"Must be root to run command '{f.__name__}'.")
+                raise CommandException(f"Must be root to run command '{f.__name__}'.")
                 
             return f(*args, **kwargs)
         return inner

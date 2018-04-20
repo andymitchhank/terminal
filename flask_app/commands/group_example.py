@@ -1,6 +1,6 @@
 import click
 
-import click_utils
+from utils import help_option, authenticated
 
 
 __all__ = ['group']
@@ -14,7 +14,7 @@ def group(ctx):
 		click_utils.print_help(ctx, None, True)
 
 @group.command()
-@click_utils.help_option()
+@help_option()
 def sub():
 	""" Basic sub command. """ 
 	return "Group - Sub command"

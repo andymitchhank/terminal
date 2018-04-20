@@ -3,48 +3,47 @@ import os
 import click
 from flask import session
 
-import click_utils
-from models import FileSystemEntry
-from helpers import FileSystem as fs
+from models import FileSystemEntry as fse
+from utils import abspath, help_option, authenticated
 
 
 @click.command()
-@click_utils.help_option()
+@help_option()
 @click.argument('path')
-@click_utils.authenticated()
+@authenticated()
 def mkdir(path):
 	""" Make a directory, if the parent directory exists. """
-	path = fs.get_absolute_path(path)
+	path = abspath(path, fse.get_working().get_full_path())
 	parent_path, d = os.path.split(path)
 
-	parent = FileSystemEntry.find_dir(parent_path)
+	parent = fse.find_dir(parent_path)
 	if parent: 
-		entry = FileSystemEntry.create(name=d, parent=parent, depth=parent.depth+1, is_directory=True)
+		entry = fse.create(name=d, parent=parent, depth=parent.depth+1, is_directory=True)
 		return f'{path} created.'
 
 	return f'{parent_path} does not exist.'
 
 
 @click.command()
-@click_utils.help_option()
+@help_option()
 @click.argument('path')
-@click_utils.authenticated()
+@authenticated()
 def touch(path):
 	""" Create a file, if it doesn't exist, at the given path if the directory exists."""
-	path = fs.get_absolute_path(path)
-	f = FileSystemEntry.find_file(path, True)
+	path = abspath(path, fse.get_working().get_full_path())
+	f = fse.find_file(path, True)
 	return f'Touched {path}' if f else f'{os.path.split(path)[0]} does not exist.'
 
 
 @click.command()
-@click_utils.help_option()
+@help_option()
 @click.argument('path')
 @click.argument('content')
-@click_utils.authenticated()
+@authenticated()
 def save(path, content):
 	""" Save a file given a path and content. Does not create a new file. """
-	path = fs.get_absolute_path(path)
-	f = FileSystemEntry.find_file(path)
+	path = abspath(path, fse.get_working().get_full_path())
+	f = fse.find_file(path)
 	if f: 
 		f.content = content
 		f.save()
@@ -55,13 +54,13 @@ def save(path, content):
 
 
 @click.command()
-@click_utils.help_option()
+@help_option()
 @click.argument('path')
-@click_utils.authenticated()
+@authenticated()
 def edit(path):
 	""" Edit a file given it's path. Will create a new file if the directory exists."""
-	path = fs.get_absolute_path(path)
-	f = FileSystemEntry.find_file(path, True)
+	path = abspath(path, fse.get_working().get_full_path())
+	f = fse.find_file(path, True)
 	if f: 
 		return {
 			'context': 'editor', 
@@ -74,41 +73,42 @@ def edit(path):
 
 
 @click.command()
-@click_utils.help_option()
+@help_option()
 @click.argument('path')
 def cd(path):
 	""" Change directory to the provided directory name. Use .. or move down one directory at a time."""
-	path = fs.get_absolute_path(path)
-	d = FileSystemEntry.find_dir(path)
-	if d:
-		fs.set_working(d.id)
-		return
+	path = abspath(path, fse.get_working().get_full_path())
+	d = fse.find_dir(path)
 
-	return f'{path} does not exists or is not a directory.'
+	if not d:
+		return f'{path} does not exists or is not a directory.'
+
+	fse.set_working(d)
 
 
 @click.command()
-@click_utils.help_option()
+@help_option()
 def pwd():
 	""" Returns the working directory path. """
-	return FileSystemEntry.get_full_path(fs.working())
+	return fse.get_working().get_full_path()
 
 
 @click.command()
-@click_utils.help_option()
+@help_option()
 def ls():
 	""" Returns the working directory path. """
-	children = (FileSystemEntry
+	children = (fse
 					.select()
-					.where(FileSystemEntry.parent_id == fs.working()))
+					.where(fse.parent == fse.get_working()))
 	return "\n".join(sorted(child.name for child in children))
 
 
 @click.command()
-@click_utils.help_option()
-@click.argument('filename')
-def cat(filename):
-	entry = FileSystemEntry.get_child(fs.working(), filename)
+@help_option()
+@click.argument('path')
+def cat(path):
+	path = abspath(path, fse.get_working().get_full_path())
+	entry = fse.find_file(path)
 
 	if not entry:
 		return f'"{filename}" not found'
@@ -120,10 +120,9 @@ def cat(filename):
 
 
 def _redirect_io(path, append, stdout):
-	if path and path[0] != '/':
-		path = os.path.join(fs.working_path(), path)
+	path = abspath(path, fse.get_working().get_full_path())
 
-	f = FileSystemEntry.find_file(path, True)
+	f = fse.find_file(path, True)
 	if append and f.content is not None:
 		stdout = f'{f.content}\n{stdout}'
 	f.content = stdout
@@ -131,20 +130,20 @@ def _redirect_io(path, append, stdout):
 
 
 @click.command()
-@click_utils.help_option()
+@help_option()
 @click.argument('path')
 @click.pass_context
-@click_utils.authenticated()
+@authenticated()
 def redirect_io(ctx, path):
 	""" A special command to handle > """
 	_redirect_io(path, False, ctx.obj['stdout'])
 
 
 @click.command()
-@click_utils.help_option()
+@help_option()
 @click.argument('path')
 @click.pass_context
-@click_utils.authenticated()
+@authenticated()
 def redirect_io_append(ctx, path):
 	""" A special command to handle >> """
 	_redirect_io(path, True, ctx.obj['stdout'])
