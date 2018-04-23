@@ -2,13 +2,23 @@ from functools import wraps
 import os
 
 import click
-from flask import session
+from flask import session, request
 from flask_login import current_user
 
 from models import FileSystemEntry as fse
 
 
 is_dev = os.environ.get('IS_DEV', '') == '1' 
+
+
+def get_prompt():
+    """ Build a prompt based on the current logged in user or guest """
+    username = 'guest'
+    if current_user.is_authenticated:
+        username = current_user.username
+    working = fse.get_working().name
+    working = working if working else '/'
+    return f'{username}@{request.host}:{working} $ '
 
 
 def abspath(path, working):

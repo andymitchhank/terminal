@@ -10,6 +10,7 @@ import requests
 import commands
 from models import FileSystemEntry as fse, User
 from utils import is_dev
+from utils import is_dev, get_prompt
 
 app = Flask(__name__, static_folder=None)
 sockets = Sockets(app)
@@ -21,15 +22,8 @@ serve_react_file = partial(send_from_directory, react_app_build)
 
 
 @app.route('/prompt', methods=['GET'])
-def get_prompt():
+def prompt():
 	""" Build a prompt based on the current logged in user or guest """
-	username = 'guest'
-	if current_user.is_authenticated:
-		username = current_user.username
-	working = fse.get_working().name
-	working = working if working else '/'
-	return f'{username}@{request.host}:{working} $ '
-
 
 def build_response(result='', context='terminal', editorContent='', editorPath=''):
 	""" Build a response that includes the given result and next prompt """
@@ -41,6 +35,7 @@ def build_response(result='', context='terminal', editorContent='', editorPath='
 			'editorPath': editorPath
 		})
 	return res
+	return get_prompt()
 
 
 @login_manager.user_loader
