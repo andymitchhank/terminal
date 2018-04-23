@@ -24,17 +24,6 @@ serve_react_file = partial(send_from_directory, react_app_build)
 @app.route('/prompt', methods=['GET'])
 def prompt():
 	""" Build a prompt based on the current logged in user or guest """
-
-def build_response(result='', context='terminal', editorContent='', editorPath=''):
-	""" Build a response that includes the given result and next prompt """
-	res = jsonify({
-			'result': result,
-			'nextPrompt': get_prompt(),
-			'context': context,
-			'editorContent': editorContent,
-			'editorPath': editorPath
-		})
-	return res
 	return get_prompt()
 
 
@@ -47,12 +36,7 @@ def load_user(user_id):
 
 @app.route('/run', methods=['POST'])
 def run_command():
-	rv = commands.run(request.get_json()["command"])
-
-	if isinstance(rv, dict):
-		return build_response(**rv)
-
-	return build_response(rv if rv else '')
+	return jsonify(commands.run(request.get_json()["command"]))
 
 
 def _proxy():
