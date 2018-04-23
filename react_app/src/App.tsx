@@ -2,6 +2,7 @@ import * as React from 'react';
 import * as CodeMirror from 'react-codemirror';
 import Textarea from 'react-textarea-autosize';
 import './App.css';
+import { runCommand, getPrompt } from './api_services';
 
 require('codemirror/lib/codemirror.css');
 
@@ -34,10 +35,10 @@ interface CommandResultState { }
 
 interface Response {
   context: string;
-  nextPrompt: string;
-  result: string;
-  editorContent: string;
-  editorPath: string;
+  prompt?: string;
+  stdout?: string;
+  content?: string;
+  path?: string;
 }
 
 class CommandResult extends React.Component<CommandResultProps, CommandResultState> {
@@ -155,14 +156,11 @@ class App extends React.Component<AppProps, AppState> {
   }
 
   getInitialPrompt = async () => {
-    fetch('/prompt', {
-      credentials: 'same-origin'  
-    })
-    .then(r => r.text())
-    .then(t => this.setState({prompts: [t], requests: [], results: []}));
+    const prompt = await getPrompt();
+    this.setState({ prompts: [prompt] });
   }
 
-  runCommand = (request: string) => {
+  runCommand = async (request: string) => {
     let prompts = this.state.prompts;
     let requests = this.state.requests;
     let results = this.state.results;
@@ -172,34 +170,26 @@ class App extends React.Component<AppProps, AppState> {
       return;
     }
 
-    fetch('/run', {
-      method: 'POST', 
-      headers: {'content-type': 'application/json;'},
-      credentials: 'same-origin',
-      body: JSON.stringify({ command: request })
-    })
-    .then( r => r.json() )
-    .then( data => {
-      const response = data as Response;
-      this.history.push(request);
+    const response = await runCommand(request) as Response;
+    if (response.context === 'terminal') { 
       requests.push(request);
-      prompts.push(response.nextPrompt);
-      results.push(response.result);
+      prompts.push(response.prompt!);
+      results.push(response.stdout!);
       this.setState({
         context: response.context, 
         prompts: prompts, 
         requests: requests, 
         results: results, 
-        editorContent: response.editorContent,
-        editorPath: response.editorPath
       });
-    })
-    .catch( e => {
-      requests.push(request);
-      prompts.push(prompts[prompts.length - 1]);
-      results.push(e.responseText);
-      this.setState({prompts: prompts, requests: requests, results: results});
-    });
+    }
+
+    if (response.context === 'editor') {
+      this.setState({
+        context: response.context, 
+        editorContent: response.content!,
+        editorPath: response.path!
+      });
+    }
   }
 
   renderPrompt = (i: number, includeRequest: boolean) => {
