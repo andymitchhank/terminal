@@ -3,7 +3,8 @@ import sys
 
 import click
 
-from utils import CommandException
+import contexts
+from utils import CommandException, get_prompt
 
 from .file_system import *
 from .utility import *
@@ -39,13 +40,17 @@ def run(commands_string):
 		except AttributeError:
 			stderr = f"Command '{name}' not found."
 		else:
-			obj = {'stdout': stdout}
+			obj = {'stdout': stdout if isinstance(stdout, str) or not stdout else ''}
 			try: 
 				stdout = command(args=stdin, standalone_mode=False, obj=obj)
 			except CommandException as e:
 				stderr = str(e)
 
 		if stderr is not None:
-			return stderr
+			stdout = stderr
+			break
 
-	return stdout
+	if isinstance(stdout, str) or not stdout:
+		return contexts.TerminalContext(stdout, get_prompt())._asdict()
+
+	return stdout._asdict()
