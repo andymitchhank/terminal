@@ -9,7 +9,6 @@ import requests
 
 import commands
 from models import FileSystemEntry as fse, User
-from utils import is_dev
 from utils import is_dev, get_prompt
 
 app = Flask(__name__, static_folder=None)
