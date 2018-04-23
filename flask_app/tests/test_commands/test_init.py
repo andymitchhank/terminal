@@ -34,9 +34,9 @@ def test_get_command_raises_for_non_command():
 		commands.get_command('get_command')
 
 
-def test_run_runs_command():
-	assert commands.run('echo 123') == '123'
+def test_run_runs_command(client):
+	assert commands.run('echo 123')['stdout'] == '123'
 
 
-def test_run_pipes_commands():
-	assert commands.run('echo 123 | echo') == '123'
+def test_run_pipes_commands(client):
+	assert commands.run('echo 123 | echo')['stdout'] == '123'

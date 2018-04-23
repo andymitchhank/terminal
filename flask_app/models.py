@@ -125,6 +125,7 @@ def create_tables():
 	models = [User, FileSystemEntry]
 
 	for model in models: 
+		model.drop_table(fail_silently=True)
 		model.create_table(fail_silently=True)
 
 

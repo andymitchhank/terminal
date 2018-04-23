@@ -76,7 +76,7 @@ def test_passwd_same_password_different_hash(run_command):
 	run_command('login root toor')
 
 	prev_hash = _get_hash()
-	run_command('password toor')
+	run_command('passwd toor')
 
 	assert prev_hash != _get_hash
 

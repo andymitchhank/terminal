@@ -18,7 +18,7 @@ def app():
 @pytest.fixture
 def run_command(client):
 	def run(c):
-		return json.loads(client.post(url_for('run_command'), data=json.dumps(dict(command=c)), content_type='application/json').data)['result']
+		return json.loads(client.post(url_for('run_command'), data=json.dumps(dict(command=c)), content_type='application/json').data)['stdout']
 	return run
 
 

@@ -37,12 +37,6 @@ def test_prompt_working_is_not_root_after_cd(run_command):
 	assert directory == 'first'
 
 
-def test_response_has_result_and_nextPrompt_attrs(client):
-	resp = json.loads(flask_app.build_response('test').data)
-	assert 'nextPrompt' in resp
-	assert 'result' in resp
-
-
 def test_response_is_not_found_when_unknown_command(run_command):
 	unknown_command = 'unknown_command'
 	result = run_command(unknown_command)
