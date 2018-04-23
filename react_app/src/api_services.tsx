@@ -1,4 +1,4 @@
-async function runCommand(command: string) {
+let runCommand = async (command: string) => {
   const res = await fetch('/run', {
       method: 'POST', 
       headers: {'content-type': 'application/json;'},
@@ -8,7 +8,7 @@ async function runCommand(command: string) {
   return await res.json();
 }
 
-async function getPrompt() {
+let getPrompt = async () => {
   const res = await fetch('/prompt', { credentials: 'same-origin' });
   return await res.text();
 }
