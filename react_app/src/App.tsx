@@ -1,8 +1,10 @@
 import * as React from 'react';
 import * as CodeMirror from 'react-codemirror';
 import Textarea from 'react-textarea-autosize';
-import './App.css';
+
 import { runCommand, getPrompt } from './api_services';
+
+import './App.css';
 
 require('codemirror/lib/codemirror.css');
 
