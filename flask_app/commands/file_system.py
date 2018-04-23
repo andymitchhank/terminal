@@ -1,8 +1,10 @@
+from typing import NamedTuple
 import os
 
 import click
 from flask import session
 
+from contexts import EditorContext
 from models import FileSystemEntry as fse
 from utils import abspath, help_option, authenticated
 
@@ -62,11 +64,7 @@ def edit(path):
 	path = abspath(path, fse.get_working().get_full_path())
 	f = fse.find_file(path, True)
 	if f: 
-		return {
-			'context': 'editor', 
-			'editorContent': f.content,
-			'editorPath': path
-		}
+		return EditorContext(path, f.content)
 
 	path, _ = os.path.split(path)
 	return f'{path} does not exist.'
