@@ -54,7 +54,10 @@ def run(commands_string):
 			stdout = stderr
 			break
 
-	if isinstance(stdout, str) or not stdout:
+	if not stdout: 
+		return contexts.TerminalContext('', get_prompt())._asdict()
+
+	if isinstance(stdout, str):
 		return contexts.TerminalContext(stdout, get_prompt())._asdict()
 
 	return stdout._asdict()
