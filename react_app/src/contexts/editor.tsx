@@ -42,7 +42,7 @@ class EditorContext extends React.Component<Props, State> {
         <CodeMirror 
           value={this.props.content}
           onChange={this.handleOnChange}
-          options={{lineNumbers: true, autofocus: true}}
+          options={{lineNumbers: true, autofocus: true, lineWrapping: true}}
         />
       </div>
     );
