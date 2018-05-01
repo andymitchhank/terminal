@@ -2,6 +2,7 @@ import shlex
 import sys
 
 import click
+from click.exceptions import ClickException
 
 import contexts
 from utils import CommandException, get_prompt
@@ -43,8 +44,11 @@ def run(commands_string):
 			obj = {'stdout': stdout if isinstance(stdout, str) or not stdout else ''}
 			try: 
 				stdout = command(args=stdin, standalone_mode=False, obj=obj)
-			except CommandException as e:
+			except (CommandException, ClickException) as e:
 				stderr = str(e)
+			except Exception as e:
+				print(e)
+				stderr = 'Unable to process command'
 
 		if stderr is not None:
 			stdout = stderr
