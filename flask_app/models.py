@@ -141,7 +141,6 @@ def create_default_data():
 	if not FileSystemEntry.select().exists():
 		FileSystemEntry.create(name='', depth=0, is_directory=True)
 
-drop_tables()
 create_tables()
 create_default_data()
 
