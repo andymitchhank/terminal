@@ -37,7 +37,8 @@ class CommandException(Exception):
 
 def print_help(ctx, param, value):
 	if value:
-		raise CommandException(ctx.get_help())
+		help = ctx.get_help().replace('gunicorn', ctx.command.name)
+		raise CommandException(help)
 
 
 def help_option(*param_decls, **attrs):
