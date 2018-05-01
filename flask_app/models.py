@@ -38,7 +38,7 @@ class FileSystemEntry(BaseModel):
 	name = CharField()
 	depth = IntegerField()
 	is_directory = BooleanField()
-	content = CharField(null=True)
+	content = TextField(null=True)
 	extension = CharField(null=True)
 
 	def get_full_path(self):
@@ -141,7 +141,7 @@ def create_default_data():
 	if not FileSystemEntry.select().exists():
 		FileSystemEntry.create(name='', depth=0, is_directory=True)
 
-
+drop_tables()
 create_tables()
 create_default_data()
 
