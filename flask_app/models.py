@@ -34,7 +34,7 @@ class User(BaseModel, UserMixin):
 	
 
 class FileSystemEntry(BaseModel):
-	parent = ForeignKeyField(model='self', field='id', null=True)
+	parent = ForeignKeyField(model='self', field='id', null=True, on_delete='CASCADE')
 	name = CharField()
 	depth = IntegerField()
 	is_directory = BooleanField()
