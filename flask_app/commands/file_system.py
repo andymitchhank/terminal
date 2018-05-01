@@ -40,6 +40,18 @@ def touch(path):
 
 @click.command()
 @help_option()
+@click.option('--directories', '-d', is_flag=True, default=False, help='Include directories')
+@click.argument('paths', nargs=-1)
+@authenticated()
+def rm(directories, paths):
+	""" Remove file or directories. Removing directories will delete all contents within the directory so be careful. """
+	func = fse.find_entry if directories else fse.find_file
+	entry_ids = [getattr(func(abspath(path, fse.get_working().get_full_path())), 'id', -1) for path in paths] 
+	fse.delete().where(fse.id << entry_ids).execute()
+	
+
+@click.command()
+@help_option()
 @click.argument('path')
 @click.argument('content')
 @authenticated()
