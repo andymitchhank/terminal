@@ -117,7 +117,7 @@ def cat(path):
 		
 	_, ext = os.path.splitext(path)
 	content = entry.content
-	if ext == '.md':
+	if ext == '.md' and content:
 		content = markdown(content)
 
 	return content
