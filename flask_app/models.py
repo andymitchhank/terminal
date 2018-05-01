@@ -121,9 +121,15 @@ class FileSystemEntry(BaseModel):
 		flask.session['working_directory_id'] = entry.id
 
 
-def create_tables():
-	models = [User, FileSystemEntry]
+models = [User, FileSystemEntry]
 
+
+def drop_tables():
+	for model in models: 
+		model.drop_table(fail_silently=True)
+
+
+def create_tables():
 	for model in models: 
 		model.create_table(fail_silently=True)
 
