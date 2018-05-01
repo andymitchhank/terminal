@@ -63,6 +63,24 @@ class FileSystemEntry(BaseModel):
 		if query.exists():
 			return query.get()
 
+	def find_entry(path):
+		if path[-1] == '/' and path != '/':
+			path = path[:-1]
+
+		directories = path.split('/')
+		entry_name = directories[-1]
+		depth = len(directories) - 1
+
+		possible_entries = FileSystemEntry.select().where(
+			FileSystemEntry.name == entry_name and
+			FileSystemEntry.depth == depth)
+
+		for e in possible_entries:
+			if e.get_full_path() == path:
+				return e
+
+		return None
+
 	def find_dir(path):
 		if path[-1] == '/' and path != '/':
 			path = path[:-1]
