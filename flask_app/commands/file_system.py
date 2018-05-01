@@ -116,8 +116,8 @@ def cat(path):
 		return f'"{entry.name}" is a directory'	
 		
 	_, ext = os.path.splitext(path)
-	content = entry.content
-	if ext == '.md' and content:
+	content = entry.content or ''
+	if ext == '.md':
 		content = markdown(content)
 
 	return content
