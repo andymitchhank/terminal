@@ -4,10 +4,13 @@ from flask import url_for
 import pytest
 
 from app import app as flask_app
-from models import create_test_data
+import models
 
 
-create_test_data()
+models.drop_tables()
+models.create_tables()
+models.create_default_data()
+models.create_test_data()
 
 
 @pytest.fixture
