@@ -3,6 +3,7 @@ import os
 
 import click
 from flask import session
+from markdown2 import markdown
 
 from contexts import EditorContext
 from models import FileSystemEntry as fse
@@ -109,12 +110,17 @@ def cat(path):
 	entry = fse.find_file(path)
 
 	if not entry:
-		return f'"{filename}" not found'
+		return f'"{path}" not found'
 
 	if entry.is_directory:
 		return f'"{entry.name}" is a directory'	
+		
+	_, ext = os.path.splitext(path)
+	content = entry.content
+	if ext == '.md':
+		content = markdown(content)
 
-	return entry.content
+	return content
 
 
 def _redirect_io(path, append, stdout):

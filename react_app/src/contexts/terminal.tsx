@@ -80,7 +80,9 @@ class CommandResult extends React.Component<CommandResultProps, CommandResultSta
   }
 
   render() {
-    return (
+    return this.props.result.startsWith('<') ? (
+      <div dangerouslySetInnerHTML={{ __html: this.props.result }} />
+    ) : (
       <div>
         <pre>{this.props.result}</pre>
       </div>
